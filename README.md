@@ -1,1 +1,1 @@
-# PhotographGarage-ING-Nov2023-
+# PhotographGarage-ING-Nov2023
