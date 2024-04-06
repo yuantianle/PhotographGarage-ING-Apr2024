@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Photo Album</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="index.css">
+    <script src="index.js"></script>
+</head>
+
+<body>
+    <div id="breadcrumb"></div>
+    <div id="back-button" style="margin-bottom: 20px; display: none;">
+        <button onclick="showEvents()">Back to Catagory</button>
+    </div>
+    <div id="toggle-container" style="position: fixed; top: 20px; right: 20px;">
+        <div id="size-controls-toggle"><i class="fas fa-cog"></i></div>
+        <div id="size-controls" style="display: none;">
+            <button id="size-small" class="size-btn">
+                <i class="fas fa-compress-arrows-alt"></i> Sml
+            </button>
+            <button id="size-medium" class="size-btn">
+                <i class="fas fa-expand-arrows-alt"></i> Med
+            </button>
+            <button id="size-large" class="size-btn">
+                <i class="fas fa-expand"></i> Lrg
+            </button>
+        </div>
+    </div>
+    <div id="photo-gallery"></div>
+    <div id="pagination" style="margin-top: 20px;"></div> <!-- 分页控件 -->
+
+</body>
+
+</html>

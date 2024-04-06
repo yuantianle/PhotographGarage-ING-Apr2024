@@ -1,0 +1,347 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Arial", sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(60deg, #243034, #306052, #5e4a47, #3e2735, #223646, #5e3a63, #1c1c2e);
+    background-size: 400% 400%;
+    animation: gradientBG 30s ease infinite;
+    color: #ffffff;
+    min-height: 100vh;
+    background-attachment: fixed;
+}
+
+@keyframes gradientBG {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    10% {
+        background-position: 10% 80%;
+    }
+
+    20% {
+        background-position: 20% 60%;
+    }
+
+    30% {
+        background-position: 30% 40%;
+    }
+
+    40% {
+        background-position: 40% 20%;
+    }
+
+    50% {
+        background-position: 50% 0%;
+    }
+
+    60% {
+        background-position: 60% 20%;
+    }
+
+    70% {
+        background-position: 70% 40%;
+    }
+
+    80% {
+        background-position: 80% 60%;
+    }
+
+    90% {
+        background-position: 90% 80%;
+    }
+}
+
+#breadcrumb {
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    /* 轻微的透明度，使其在深色背景上更为优雅 */
+    border-radius: 10px;
+    /* 轻微的圆角 */
+    text-align: left;
+    margin-bottom: 20px;
+    /* 与其他内容保持一定距离 */
+    color: #fff;
+    /* 适应深色主题 */
+    font-size: 20px;
+    /* 适当的字体大小 */
+    max-width: calc(100% - 95px); /* 根据 toggle-container 的实际宽度调整 */
+    overflow: hidden; /* 防止内容溢出 */
+    white-space: nowrap; /* 保持面包屑在一行显示 */
+    text-overflow: ellipsis; /* 超出部分显示省略号 */
+}
+
+#breadcrumb span {
+    color: #a0b1c5 !important;
+    /* 更柔和的颜色，提高可读性 */
+    cursor: pointer !important;
+    transition: color 0.3s ease;
+    /* 平滑的颜色过渡效果 */
+}
+
+#breadcrumb span:hover {
+    color: #ffffff !important;
+    /* 鼠标悬停时的高亮效果 */
+    text-decoration: underline !important;
+    /* 增加下划线以提高交互反馈 */
+}
+
+#back-button button {
+    background-color: #3742fa;
+    /* 调整为深蓝色背景，更加柔和 */
+    color: #fff;
+    /* 文字颜色保持为白色以确保对比度 */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    /* 轻微调整圆角大小 */
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    /* 添加放大效果的过渡 */
+}
+
+#back-button button:hover {
+    background-color: #5352ed;
+    /* 悬停时的颜色稍微亮一些 */
+    transform: scale(1.05);
+    /* 悬停时轻微放大 */
+}
+
+#back-button button:hover {
+    background-color: #c1dfff;
+}
+
+#photo-gallery {
+    text-align: left;
+    display: wrapper;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+}
+
+#photo-gallery a {
+    border-radius: 10px;
+    /* 圆角边框 */
+    overflow: hidden;
+    display: inline-block;
+    /* 确保可以应用转换和其他效果 */
+    margin: 10px;
+    /* 添加一些外边距，避免图片之间太紧密 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* 添加阴影，增加立体感 */
+    transition: all 0.3s ease-in-out;
+    /* 平滑过渡效果，提升用户体验 */
+}
+
+#photo-gallery a:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    /* 悬停时增加阴影，增强立体感 */
+    transform: scale(1.05);
+    /* 轻微放大 */
+}
+
+#photo-gallery img {
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+/* 分页控件的容器样式 */
+#pagination {
+    text-align: center;
+    margin: 20px 0;
+    display: flex;
+    justify-content: center; /* 使分页按钮居中 */
+    flex-wrap: wrap; /* 允许分页按钮在必要时换行 */
+}
+
+/* 分页按钮的基本样式 */
+#pagination button {
+    border: 1px solid #007bff; /* 蓝色边框 */
+    background-color: #ffffff; /* 白色背景 */
+    color: #007bff; /* 蓝色文字 */
+    padding: 5px 10px; /* 按钮内边距 */
+    margin: 0 5px; /* 按钮间的间距 */
+    cursor: pointer; /* 鼠标悬停时的光标形状 */
+    transition: all 0.3s ease-in-out;
+    transform: scale(0.9); /* 默认时稍微缩小 */
+}
+
+/* 分页按钮在鼠标悬停时的样式 */
+#pagination button:hover {
+    background-color: #007bff; /* 按钮背景色变为蓝色 */
+    color: #ffffff; /* 文字颜色变为白色 */
+}
+
+/* 当前选中的分页按钮的样式 */
+#pagination button.active {
+    background-color: #0056b3; /* 更深的蓝色背景表示选中状态 */
+    color: #ffffff;
+    border-color: #004085; /* 更深的边框颜色 */
+    transform: scale(1.1); /* 选中的按钮稍微放大 */
+}
+
+/* 确保 caption 容器本身居中 */
+.fancybox-caption {
+    background-color: #00000000 !important; 
+    /* 透明度，使其在深色背景上更为优雅 */
+    color: #007bff !important;
+    text-align: left; /* 文本左对齐 */
+    max-width: 100%; /* 或根据需要调整最大宽度 */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.caption-key {
+    color: #007bff; /* 示例颜色，键（属性名）使用蓝色 */
+    font-weight: bold; /* 加粗字体以增加区分度 */
+}
+
+.caption-value {
+    color: #ffffff9e; /* 示例颜色，值使用深灰色 */
+}
+
+/* 如果 caption 内部有额外的容器或段落，确保文本也是左对齐的 */
+.fancybox-caption p {
+    text-align: left;
+}
+
+.event-button {
+    width: 120px;
+    height: 100px;
+    background-size: cover;
+    background-position: center;
+    display: inline-block;
+    margin: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* 添加过渡效果 */
+}
+
+.event-button:hover {
+    transform: scale(1.05);
+    /* 放大效果 */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    /* 加深阴影 */
+}
+
+.event-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    /* 添加过渡效果 */
+}
+
+.event-button:hover .event-name {
+    background-color: rgba(255, 255, 255, 0.7);
+    /* 悬停时改变背景颜色，增加透明度 */
+    color: #000;
+    /* 悬停时改变文字颜色 */
+}
+
+.photo-container {
+    display: inline-block; /* 或flex, 根据需要调整 */
+    text-align: center; /* 使图片和文字居中 */
+    margin: 10px; /* 添加一些外边距 */
+}
+
+.photo-name {
+    color: #FFF; /* 根据你的网站风格调整颜色 */
+    margin-top: 5px; /* 文字与图片之间的间距 */
+    overflow: hidden; /* 隐藏超出部分 */
+    white-space: nowrap; /* 保持名字在一行显示 */
+    text-overflow: ellipsis; /* 超出部分显示省略号 */
+}
+
+#toggle-container {
+    position: relative;
+    cursor: pointer;
+    display: inline-block;
+    top: 20px;
+    right: 20px;
+}
+
+#size-controls-toggle {
+    cursor: pointer;
+    padding: 10px;
+    background-color: #000000;
+    border-radius: 50%;
+    display: inline-block;
+    text-align: center;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+#size-controls {
+    display: none;
+    position: absolute;
+    right: 0;
+}
+
+.size-btn {
+    border: 1px solid #007bff; /* 边框 */
+    background-color: #007bff; /* 背景 */
+    color: #ffffff; /* 蓝色文本 */
+    padding: 10px ; /* 内边距 */
+    border-radius: 5px; /* 圆角 */
+    cursor: pointer; /* 手型光标 */
+    margin: 0 10px; /* 按钮之间的间隔 */
+    transition: all 0.3s ease; /* 平滑过渡效果 */
+    position: absolute; /* 绝对定位以形成圆形 */
+}
+.size-btn {
+    display: block;
+    width: 50px;
+    margin: 5px 0;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
+}
+
+#size-controls.show .size-btn {
+    opacity: 1;
+    transform: scale(1);
+    transition: all 0.3s ease;
+}
+
+.size-btn:hover {
+    background-color: #ffffff; /* 悬停时的背景颜色 */
+    color: #007bff; /* 悬停时的文本颜色 */
+}
+
+.size-btn.active {
+    background-color: #9500ff; /* 选中状态的背景颜色 */
+    color: #ffffff; /* 选中状态的文本颜色 */
+    border-color: #0056b3; /* 选中状态的边框颜色 */
+    transform: scale(1.1); /* 稍微放大 */
+}
+
+/* 按钮定位调整，确保它们在四分之一圆周上 */
+#size-large {
+    right: 0;
+    bottom: -100px;
+}
+
+#size-medium {
+    right: 52px; /* 调整这个值来改变按钮间距 */
+    bottom: -52px; /* 形成四分之一圆形 */
+}
+
+#size-small {
+    right: 104px; /* 根据实际需要调整 */
+    bottom: 0;
+}
