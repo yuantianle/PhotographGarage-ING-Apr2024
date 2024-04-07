@@ -20,8 +20,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     setupLazyLoading(); // 初始调用
 
-    // ---- 动态设置图片尺寸 ----
     let currentEvent = null; // 初始状态，没有事件被选中
+
+    // ---- 动态设置元素尺寸 ----
     const SIZE_SMALL = 80;
     const SIZE_MEDIUM = 150;
     const SIZE_LARGE = 220;
@@ -34,6 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('size-small').addEventListener('click', () => setImageSize(SIZE_SMALL));
     document.getElementById('size-medium').addEventListener('click', () => setImageSize(SIZE_MEDIUM));
     document.getElementById('size-large').addEventListener('click', () => setImageSize(SIZE_LARGE));
+    
     function setImageSize(size) {
         imageSize = size;
 
@@ -46,30 +48,32 @@ document.addEventListener("DOMContentLoaded", function () {
                 btn.classList.remove('active');
             }
         });
-        // 重新显示图片
-        if (currentEvent) { // 如果已选择事件，则刷新图片展示以应用新尺寸
-            showPhotos(currentEvent.split('/'));
-        }
+        // 更新图片和文件夹尺寸
+        const gallery = document.getElementById('photo-gallery');
+        gallery.innerHTML = '';
+        
+        // 如果当前视图有文件夹和图片，需要重新加载当前路径
+        console.log('Current event:', events);
+        showEvents(events.split('/'));
+        showPhotos(events.split('/'));
+        
     }
-
 
     // ---- 设置文件夹委托监听器 ----
     document.getElementById('photo-gallery').addEventListener('click', function (e) {
         if (e.target && e.target.matches('.event-button')) {
             const eventName = e.target.getAttribute('data-event');
-            const newPathArray = currentEvent ? currentEvent.split('/').concat(eventName) : [eventName];
-            onEventSelected(newPathArray);// 这是点击文件夹（事件）按钮时调用的函数
+            // 构建新的路径数组
+            const newPathVariable = (currentEvent ? currentEvent.split('/') : ['public']).concat(eventName);
+            currentEvent = newPathVariable.join('/');
+            // 清空画廊一次，然后调用两个函数以显示新内容
+            const gallery = document.getElementById('photo-gallery');
+            gallery.innerHTML = '';
+            console.log('New path:', newPathVariable);
+            showEvents(newPathVariable); // 显示新路径下的文件夹
+            showPhotos(newPathVariable); // 显示新路径下的图片
         }
     });
-    function onEventSelected(eventPathArray) {
-        currentEvent = eventPathArray.join('/'); // 更新当前事件
-        currentPage = 1; // 重置为第一页
-        if (events[currentEvent] && events[currentEvent].photos) {
-            showPhotos(eventPathArray);
-        } else {
-            showEvents(eventPathArray);
-        }
-    }
 
     // ---- 显示/隐藏尺寸调整按钮 ----
     document.getElementById('size-controls-toggle').addEventListener('click', function () {
@@ -103,6 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const photos = JSON.parse(data.body);
                 processPhotos(photos);
                 showEvents(['public']); // 初次加载页面时显示所有事件
+                showPhotos(['public']); // 初次加载页面时显示所有图片
                 updateBreadcrumb(['public']); // 初始路径
                 updatePagination('public', 1); // 初始分页控件
             }
@@ -110,6 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(error => console.error('Error:', error));
 
     function processPhotos(photos) {
+        const imageExtensions = /\.(jpg|jpeg|png)$/i;
         photos.forEach(photoUrl => {
             const match = photoUrl.match(/public\/(.+)$/);
             if (match) {
@@ -130,10 +136,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!currentLevel.photos) {
                     currentLevel.photos = [];
                 }
-                currentLevel.photos.push(photoUrl);
+                // 检查路径是否以图片格式结尾，如果是则添加到 photos 数组中
+                if (imageExtensions.test(photoName)) {
+                    currentLevel.photos.push(photoUrl);
+                }
             }
         });
-        console.log(events);
     }
 
     // 显示所有事件
@@ -141,12 +149,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const gallery = document.getElementById('photo-gallery');
         pagination.style.display = 'none';// 隐藏分页控件
         document.getElementById('size-controls').style.display = 'none'; // 隐藏尺寸调整按钮
-        gallery.innerHTML = ''; // 清空画廊
 
         // 根据路径数组遍历到当前目录层级
         let currentLevel = events;
         for (let i = 1; i < pathArray.length; i++) {
-            if(currentLevel[pathArray[i]]) { // 确保存在这个路径段
+            if (currentLevel[pathArray[i]]) { // 确保存在这个路径段
                 currentLevel = currentLevel[pathArray[i]];
             } else {
                 // 如果路径不存在，可能需要输出一些错误信息或者处理逻辑
@@ -154,7 +161,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return; // 早期返回防止进一步错误
             }
         }
-    
+
         if (typeof currentLevel !== 'object' || currentLevel === null) {
             console.error("Invalid current level:", currentLevel);
             return; // 如果当前层级不是一个对象或为null，停止执行
@@ -163,15 +170,23 @@ document.addEventListener("DOMContentLoaded", function () {
         updateBreadcrumb(pathArray); // 更新面包屑导航
 
         Object.keys(currentLevel).forEach(key => {
-            const eventButton = document.createElement('div');
-            eventButton.setAttribute('data-event', key); // 存储事件（目录）名称
-            eventButton.classList.add('event-button');
-            eventButton.style.backgroundImage = `url(${currentLevel[key].photos?.[0] || 'unnamed.png'})`; // 使用默认图片路径作为后备
-            const eventName = document.createElement('div');
-            eventName.classList.add('event-name');
-            eventName.textContent = key; // 目录名称
-            eventButton.appendChild(eventName);
-            gallery.appendChild(eventButton);
+            if ((typeof currentLevel[key] === 'object' && currentLevel[key] !== null) && key !== 'photos') {
+                // 如果当前项目是一个对象（文件夹），创建一个文件夹按钮
+                const eventButton = document.createElement('div');
+                eventButton.setAttribute('data-event', key); // 存储事件（目录）名称
+                eventButton.classList.add('event-button');
+
+                var originalString = `url("${currentLevel[key].photos?.[0] || 'unnamed.png'}")`;
+                eventButton.style.backgroundImage = originalString;
+                eventButton.style.backgroundSize = 'cover'; // 确保背景图片覆盖整个元素
+                eventButton.style.width = `${imageSize}px`; // 动态设置宽度以匹配图片
+                eventButton.style.height =`${imageSize}px`; // 保持背景图片的纵横比
+                const eventName = document.createElement('div');
+                eventName.classList.add('event-name');
+                eventName.textContent = key; // 目录名称
+                eventButton.appendChild(eventName);
+                gallery.appendChild(eventButton);
+            }
         });
 
         // 重置当前页面
@@ -190,19 +205,18 @@ document.addEventListener("DOMContentLoaded", function () {
         const gallery = document.getElementById('photo-gallery');
         pagination.style.display = 'block'; // 显示分页控件
         document.getElementById('size-controls').style.display = 'block'; // 显示尺寸调整按钮
-        gallery.innerHTML = ''; // 清空画廊
 
         // 遍历到当前选中目录的层级
         let currentLevel = events;
         for (let i = 1; i < pathArray.length; i++) {
             currentLevel = currentLevel[pathArray[i]];
         }
-
         const photos = currentLevel.photos || [];
+
         const totalPhotos = photos.length;
         // 计算当前页应显示的图片
         const startIndex = (currentPage - 1) * photosPerPage;
-        const endIndex = startIndex + photosPerPage;
+        const endIndex = Math.min(startIndex + photosPerPage, totalPhotos);
         const photosToShow = photos.slice(startIndex, endIndex);
 
         photosToShow.forEach(photoUrl => {
@@ -212,7 +226,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const link = document.createElement('a');
             link.href = photoUrl;
-            link.dataset.fancybox = event;
+            link.dataset.fancybox = 'gallery';
             link.dataset.caption = 'Loading...';
 
             // 创建图片元素
@@ -242,7 +256,6 @@ document.addEventListener("DOMContentLoaded", function () {
             // 将容器添加到画廊
             gallery.appendChild(photoContainer);
 
-
             // 为 FancyBox 设置 beforeShow 回调
             $(link).fancybox({
                 beforeShow: function (instance, slide) {
@@ -261,13 +274,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         `;
                         // 试着直接更新 caption 文本
                         $(".fancybox-caption").html(newCaption);
-                        // 或者，如果你有访问当前 FancyBox 实例的方式，尝试更新实例属性
-                        instance.current.opts.caption = newCaption;
+                        instance.current.opts.caption = newCaption; //直接更新实例属性
                     }).catch(error => {
                         console.error('Error fetching image info:', error);
                         $(".fancybox-caption").text("Image information is not available.");
-                        // 或更新实例属性
-                        instance.current.opts.caption = "Image information is not available.";
+                        instance.current.opts.caption = "Image information is not available."; // 直接更新实例属性
                     });
                 }
             });
@@ -336,19 +347,26 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // 更新面包屑导航函数
     function updateBreadcrumb(pathArray) {
         const breadcrumb = document.getElementById('breadcrumb');
         breadcrumb.innerHTML = ''; // 清空当前面包屑
-    
+
         pathArray.forEach((item, index) => {
             const crumbLink = document.createElement('a');
             crumbLink.href = '#';
-            crumbLink.textContent = index === 0 ? 'Public' : item; // 第一个路径显示为"Public"
+            crumbLink.textContent = index === 0 ? 'Public' : item;
             crumbLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                showEvents(pathArray.slice(0, index + 1));
+                const newPathArray = pathArray.slice(0, index + 1);
+                currentEvent = newPathArray.join('/'); // 更新当前事件路径
+                // 先清空画廊内容，然后加载新内容
+                const gallery = document.getElementById('photo-gallery');
+                gallery.innerHTML = '';
+                showEvents(newPathArray);
+                showPhotos(newPathArray);
             });
-    
+
             breadcrumb.appendChild(crumbLink);
             if (index < pathArray.length - 1) {
                 breadcrumb.append(' / ');
@@ -356,11 +374,4 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-});
-
-document.querySelectorAll('.event-button').forEach(button => {
-    button.addEventListener('click', () => {
-        const eventName = button.getAttribute('data-event'); // 获取事件名称
-        onEventSelected(eventName); // 调用onEventSelected函数并传入事件名称
-    });
 });
