@@ -1,8 +1,40 @@
+// ---- 动态设置元素尺寸 ----
+const SIZE_SMALL = 80;
+const SIZE_MEDIUM = 150;
+const SIZE_LARGE = 220;
+let imageSize = SIZE_MEDIUM; // 默认中图
+
+// 计算每页显示的图片数量
+function calculatePhotosPerPage() {
+    const pageWidth = window.innerWidth; // 获取窗口宽度
+    const pageHeight = window.innerHeight; // 获取窗口高度
+    const imageWidth = imageSize; // 图片宽度，您可以根据实际情况设置
+    const imageHeight = imageSize; // 图片高度，您可以根据实际情况设置
+
+    // 计算每行可以容纳的图片数量
+    const imagesPerRow = Math.floor(pageWidth / imageWidth);
+
+    // 计算每列可以容纳的图片数量
+    const imagesPerColumn = Math.floor(pageHeight / imageHeight);
+
+    // 计算每页显示的图片数量
+    const photosPerPage = imagesPerRow * imagesPerColumn;
+
+    return photosPerPage;
+}
+
+// 在窗口大小变化时重新计算每页显示的图片数量，并重新加载图片
+window.addEventListener('resize', function () {
+    const newPhotosPerPage = calculatePhotosPerPage();
+    if (newPhotosPerPage !== photosPerPage) {
+        photosPerPage = newPhotosPerPage;
+        showPhotos(currentPathArray); // 重新加载图片以适应新的每页图片数量
+    }
+});
 
 document.addEventListener("DOMContentLoaded", function () {
     // ---- 隐藏分页控件 ----
     const pagination = document.getElementById('pagination');
-    pagination.style.display = 'none'; // 隐藏分页控件
 
     // ---- 懒加载图片 ----
     const imageObserver = new IntersectionObserver((entries, observer) => { // 创建 IntersectionObserver 实例
@@ -22,11 +54,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let currentEvent = null; // 初始状态，没有事件被选中
 
-    // ---- 动态设置元素尺寸 ----
-    const SIZE_SMALL = 80;
-    const SIZE_MEDIUM = 150;
-    const SIZE_LARGE = 220;
-    let imageSize = SIZE_MEDIUM; // 默认中图
     // 初始化尺寸按钮并设置data-size属性
     document.getElementById('size-small').setAttribute('data-size', SIZE_SMALL);
     document.getElementById('size-medium').setAttribute('data-size', SIZE_MEDIUM);
@@ -35,8 +62,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('size-small').addEventListener('click', () => setImageSize(SIZE_SMALL));
     document.getElementById('size-medium').addEventListener('click', () => setImageSize(SIZE_MEDIUM));
     document.getElementById('size-large').addEventListener('click', () => setImageSize(SIZE_LARGE));
-    
-    function setImageSize(size) {
+
+    function setImageSize(size, path) {
         imageSize = size;
 
         // 更新按钮的激活状态
@@ -51,14 +78,17 @@ document.addEventListener("DOMContentLoaded", function () {
         // 更新图片和文件夹尺寸
         const gallery = document.getElementById('photo-gallery');
         gallery.innerHTML = '';
-        
-        // 如果当前视图有文件夹和图片，需要重新加载当前路径
-        console.log('Current event:', events);
-        showEvents(events.split('/'));
-        showPhotos(events.split('/'));
-        
+
+        // 构建新的路径数组，使用当前事件或默认值
+        const newPathVariable = currentEvent ? currentEvent.split('/') : ['public'];
+        currentEvent = newPathVariable.join('/'); // 更新currentEvent为字符串
+
+        // 显示新路径下的文件夹和图片
+        showEvents(newPathVariable);
+        showPhotos(newPathVariable);
     }
 
+    var totalItemsNum = 0; // 总项目数
     // ---- 设置文件夹委托监听器 ----
     document.getElementById('photo-gallery').addEventListener('click', function (e) {
         if (e.target && e.target.matches('.event-button')) {
@@ -69,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // 清空画廊一次，然后调用两个函数以显示新内容
             const gallery = document.getElementById('photo-gallery');
             gallery.innerHTML = '';
-            console.log('New path:', newPathVariable);
+
             showEvents(newPathVariable); // 显示新路径下的文件夹
             showPhotos(newPathVariable); // 显示新路径下的图片
         }
@@ -78,22 +108,47 @@ document.addEventListener("DOMContentLoaded", function () {
     // ---- 显示/隐藏尺寸调整按钮 ----
     document.getElementById('size-controls-toggle').addEventListener('click', function () {
         var sizeControls = document.getElementById('size-controls');
-        if (sizeControls.style.display === 'none') {
+        var isDisplayNone = sizeControls.style.display === 'none';
+        var isShowClassPresent = sizeControls.classList.contains('show');
+
+        // 如果display为none，或display为block但没有.show类，则显示元素
+        if (isDisplayNone || (!isDisplayNone && !isShowClassPresent)) {
             sizeControls.style.display = 'block';
             setTimeout(function () {
                 sizeControls.classList.add('show');
-            }, 10); // 稍微延迟添加 show 类来触发动画
+            }, 10); // 添加.show类来显示元素
         } else {
             sizeControls.classList.remove('show');
             setTimeout(function () {
+                // 当动画完成后再隐藏元素，或者如果没有动画，直接隐藏
                 sizeControls.style.display = 'none';
-            }, 300); // 等待动画完成后再隐藏
+            }, 300); // 假设移除.show类会触发一个渐隐动画
+        }
+    });
+    document.addEventListener('click', function (event) {
+        var sizeControls = document.getElementById('size-controls');
+        var sizeControlsToggle = document.getElementById('size-controls-toggle');
+
+        // 检查点击事件是否发生在size-controls或其子元素上
+        var clickInsideControls = sizeControls.contains(event.target);
+
+        // 检查点击事件是否发生在size-controls-toggle上
+        var clickOnToggle = sizeControlsToggle.contains(event.target);
+
+        // 如果点击发生在控件和切换按钮外部，则隐藏控件
+        if (!clickInsideControls && !clickOnToggle) {
+            sizeControls.classList.remove('show');
+            setTimeout(function () {
+                // 当动画完成后再隐藏元素，或者如果没有动画，直接隐藏
+                sizeControls.style.display = 'none';
+            }, 300); // 假设移除.show类会触发一个渐隐动画
         }
     });
 
+
     // ---- 从API获取数据 ----
     let events = {}; // 存储更复杂的结构来存储嵌套目录
-
+    document.getElementById('loading-indicator').style.display = 'block'; // 显示加载指示器
     // 模拟从API获取数据 (完成)
     fetch('https://7jaqpxmr1h.execute-api.us-west-2.amazonaws.com/prod')
         .then(response => {
@@ -112,7 +167,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 updatePagination('public', 1); // 初始分页控件
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => console.error('Error:', error))
+        .finally(() => {
+            document.getElementById('loading-indicator').style.display = 'none'; // 隐藏加载指示器
+        });;
 
     function processPhotos(photos) {
         const imageExtensions = /\.(jpg|jpeg|png)$/i;
@@ -144,10 +202,16 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // 默认的公共事件图片的图片映射
+    const defaultPublicEventImages = {
+        'Polaroid': 'polaroid.png',
+        'Canon_Digital': 'canon_digit.png',
+        'Canon_Film': 'canon_film.png',
+    };
+
     // 显示所有事件
     function showEvents(pathArray = ['public']) {
         const gallery = document.getElementById('photo-gallery');
-        pagination.style.display = 'none';// 隐藏分页控件
         document.getElementById('size-controls').style.display = 'none'; // 隐藏尺寸调整按钮
 
         // 根据路径数组遍历到当前目录层级
@@ -171,20 +235,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
         Object.keys(currentLevel).forEach(key => {
             if ((typeof currentLevel[key] === 'object' && currentLevel[key] !== null) && key !== 'photos') {
-                // 如果当前项目是一个对象（文件夹），创建一个文件夹按钮
+                // 创建文件夹按钮
                 const eventButton = document.createElement('div');
                 eventButton.setAttribute('data-event', key); // 存储事件（目录）名称
                 eventButton.classList.add('event-button');
 
-                var originalString = `url("${currentLevel[key].photos?.[0] || 'unnamed.png'}")`;
+                // 设置文件夹风格  
+                const defaultImage = pathArray[0] === 'public' ? defaultPublicEventImages[key] : null;// 检查是否为这个路径设置了默认图片，特别是对于位于public根目录下的文件夹
+                console.log(defaultImage);
+                var originalString = `url("${currentLevel[key].photos?.[0] || defaultImage || 'unnamed.png' }")`;
                 eventButton.style.backgroundImage = originalString;
-                eventButton.style.backgroundSize = 'cover'; // 确保背景图片覆盖整个元素
-                eventButton.style.width = `${imageSize}px`; // 动态设置宽度以匹配图片
-                eventButton.style.height =`${imageSize}px`; // 保持背景图片的纵横比
+                eventButton.style.backgroundSize = 'contain';
+                eventButton.style.width = `${imageSize}px`;
+                eventButton.style.height = `${imageSize}px`;
+                eventButton.style.marginBottom = '45px';
+                eventButton.style.backgroundRepeat = 'no-repeat';
+                // title is the name of the folder
+                eventButton.setAttribute('title', key);
+
+                // 添加文件夹图标元素
+                const folderIcon = document.createElement('img');
+                defaultImage? folderIcon.style.opacity = 0 : folderIcon.src ='folder.png'; // 替换为你的文件夹图标路径
+                folderIcon.style.width = '50%'; // 根据需要调整大小
+                folderIcon.style.height = '50%';
+                folderIcon.style.position = 'absolute'; // 使用绝对定位
+                folderIcon.style.bottom = '5px'; // 调整位置
+                folderIcon.style.right = '5px';
+                folderIcon.style.pointerEvents = 'none'; // 允许点击事件穿透图标
+                eventButton.appendChild(folderIcon);
+
+                // 添加目录名称
                 const eventName = document.createElement('div');
                 eventName.classList.add('event-name');
-                eventName.textContent = key; // 目录名称
+                eventName.textContent = key;
                 eventButton.appendChild(eventName);
+
+                // 将完整的文件夹按钮添加到画廊中
                 gallery.appendChild(eventButton);
             }
         });
@@ -198,13 +284,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     let currentPage = 1; // 当前页码
-    const photosPerPage = 21; // 每页显示的图片数量
+    const photosPerPage = calculatePhotosPerPage(); // 每页显示的图片数量
 
     // 根据事件显示照片
     function showPhotos(pathArray) {
         const gallery = document.getElementById('photo-gallery');
-        pagination.style.display = 'block'; // 显示分页控件
         document.getElementById('size-controls').style.display = 'block'; // 显示尺寸调整按钮
+
+        //清除目录里面的照片
+        const photoContainers = gallery.querySelectorAll('.photo-container');
+        photoContainers.forEach(container => {
+            container.remove(); // 移除图片容器
+        });
 
         // 遍历到当前选中目录的层级
         let currentLevel = events;
@@ -252,6 +343,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // 将链接和图片名添加到容器
             photoContainer.appendChild(link);
             photoContainer.appendChild(nameElement);
+            photoContainer.setAttribute('title', photoName);
 
             // 将容器添加到画廊
             gallery.appendChild(photoContainer);
@@ -291,6 +383,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 获取图片信息
     function fetchImageInfo(photoUrl) {
+        document.getElementById('loading-indicator').style.display = 'block'; // 显示加载指示器
         // 提取 photoKey 从完整的 S3 URL
         const urlParts = new URL(photoUrl);
         const photoKey = urlParts.pathname.substring(1); // 移除开头的斜杠
@@ -317,9 +410,11 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(error => {
                 console.error('Error fetching image info:', error);
+            })
+            .finally(() => {
+                document.getElementById('loading-indicator').style.display = 'none'; // 隐藏加载指示器
             });
     }
-
 
     function updatePagination(totalPhotos, pathArray) {
         const pagination = document.getElementById('pagination');
@@ -341,6 +436,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             pageButton.addEventListener('click', () => {
                 currentPage = i;
+                // 更新分页按钮状态
+                updatePagination(totalPhotos, pathArray);
+                // 只更新当前页的图片
                 showPhotos(pathArray); // 重新显示当前目录的图片
             });
             pagination.appendChild(pageButton);
