@@ -197,17 +197,6 @@ body {
     background-size: 80px auto;
 }
 
-/* 确保 caption 容器本身居中 */
-.fancybox-caption {
-    background-color: #00000000 !important; 
-    /* 透明度，使其在深色背景上更为优雅 */
-    color: #007bff !important;
-    text-align: left; /* 文本左对齐 */
-    max-width: 100%; /* 或根据需要调整最大宽度 */
-    margin-left: auto;
-    margin-right: auto;
-}
-
 .caption-key {
     color: #007bff; /* 示例颜色，键（属性名）使用蓝色 */
     font-weight: bold; /* 加粗字体以增加区分度 */
@@ -220,6 +209,10 @@ body {
 /* 如果 caption 内部有额外的容器或段落，确保文本也是左对齐的 */
 .fancybox-caption p {
     text-align: left;
+}
+
+.fancybox__slide.fancybox-caption{
+    padding: 10px;
 }
 
 .event-button {
@@ -410,6 +403,5 @@ body {
   ::-webkit-scrollbar-thumb:hover {
     background:  rgb(218, 216, 216); 
   }
-  
-  
+
   

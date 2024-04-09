@@ -327,7 +327,14 @@ document.addEventListener("DOMContentLoaded", function () {
             const link = document.createElement('a');
             link.href = photoUrl;
             link.dataset.fancybox = 'gallery';
-            link.dataset.caption = 'Loading...';
+            link.dataset.caption = `
+            <div style="
+                position: absolute;
+                top: 90%;
+                left: 3%;
+                font-size: 1.2em;
+            ">Loading...</div>
+        `;
 
             // 创建图片元素
             const img = document.createElement('img');
@@ -368,33 +375,78 @@ document.addEventListener("DOMContentLoaded", function () {
             newElements.push(photoContainer); // 添加新元素到数组中
             loadPromises.push(loadPromise);// 将这个Promise添加到数组中
 
-            if (link.dataset.caption === 'Loading...') {
+            if (link.dataset.caption === `
+            <div style="
+                position: absolute;
+                top: 90%;
+                left: 3%;
+                font-size: 1.2em;
+            ">Loading...</div>
+        `) {
                 // 为 FancyBox 设置 beforeShow 回调
-                Fancybox.bind("[data-fancybox]", {
+                Fancybox.bind("[data-fancybox = 'gallery']", {
                     on: {
                         "loaded": (fancybox, slide) => {
-                            console.log('beforeLoad:', fancybox, slide);
                             // 使用当前图片的 URL 调用 fetchImageInfo
                             fetchImageInfo(photoUrl).then(info => {
                                 // 更新 caption
                                 let newCaption = `
-                        <div>
-                        <span class="caption-key">⏳ Exposure Time: </span> <span class="caption-value">${info['Exposure Time']}</span><br>
-                        <span class="caption-key">📀 Aperture: </span> <span class="caption-value">${info['F Number']}</span><br>
-                        <span class="caption-key">☀️ ISO Speed: </span> <span class="caption-value">${info['ISO Speed']}</span><br>
-                        <span class="caption-key">🔬 Focal Length: </span> <span class="caption-value">${info['Focal Length']}</span><br>
-                        <span class="caption-key">📷 Flash: </span> <span class="caption-value">${info['Flash']}</span>
-                    </div>
+                                <div style="
+                                position: absolute;
+                                top: 90%;
+                                left: 3%;
+                                font-size: 1.2em;
+                            ">
+                            <span class="caption-key">⏳ Exposure Time: </span> <span class="caption-value">${info['Exposure Time']}</span><br>
+                            <span class="caption-key">💿 Aperture: </span> <span class="caption-value">${info['F Number']}</span><br>
+                            <span class="caption-key">🔆 ISO Speed: </span> <span class="caption-value">${info['ISO Speed']}</span><br>
+                            <span class="caption-key">🔭 Focal Length: </span> <span class="caption-value">${info['Focal Length']}</span><br>
+                            <span class="caption-key">📸 Flash: </span> <span class="caption-value">${info['Flash']}</span>
+                        </div>
                         `;
                                 slide.caption = newCaption;
-                                // 试着直接更新 caption 文本;
-                                fancybox.setContent(slide, slide); //直接更新实例属性
+                                fancybox.setContent(slide); //直接更新实例属性
                             }).catch(error => {
                                 console.error('Error fetching image info:', error);
                                 slide.caption = "Image information is not available.";
-                                fancybox.setContent(slide, slide);
+                                fancybox.setContent(slide);
                             });
                         }
+                    },
+                    loop: true,
+                    contentClick: "iterateZoom",
+                    Images: {
+                        Panzoom: {
+                            maxScale: 3,
+                        },
+                        protected: true,
+                    },
+                    buttons: [
+                        'slideShow',
+                        'zoom',
+                        'fullScreen',
+                        'close',
+                        'thumbs'
+                    ],
+                    thumbs: {
+                        autoStart: true,
+                        axis: 'y',
+                        type: "modern",
+                    },
+                    Toolbar: {
+                        display: {
+                            left: ["infobar"],
+                            middle: [
+                                "zoomIn",
+                                "zoomOut",
+                                "toggle1to1",
+                                "rotateCCW",
+                                "rotateCW",
+                                "flipX",
+                                "flipY",
+                            ],
+                            right: ["slideshow", "thumbs", "close"],
+                        },
                     }
                 });
             }
@@ -405,54 +457,12 @@ document.addEventListener("DOMContentLoaded", function () {
         Promise.all(loadPromises).then(() => {
             iso.appended(newElements);
             iso.layout();
-            // 初始化或重新初始化 FancyBox
-            reinitFancybox();
         }).catch(error => console.error('Error loading images:', error));
 
         updatePagination(totalPhotos, pathArray); // 确保正确计算和传递总图片数
         updateBreadcrumb(pathArray); // 更新面包屑导航
     }
 
-    // FancyBox 的初始化或重新初始化
-    function reinitFancybox() {
-        Fancybox.bind("[data-fancybox='gallery']", {
-            loop: true,
-            contentClick: "iterateZoom",
-            Images: {
-                Panzoom: {
-                    maxScale: 2,
-                },
-                protected: true,
-            },
-            buttons: [
-                'slideShow',
-                'zoom',
-                'fullScreen',
-                'close',
-                'thumbs'
-            ],
-            thumbs: {
-                autoStart: true,
-                axis: 'y',
-                type: "modern",
-            },
-            Toolbar: {
-                display: {
-                    left: ["infobar"],
-                    middle: [
-                        "zoomIn",
-                        "zoomOut",
-                        "toggle1to1",
-                        "rotateCCW",
-                        "rotateCW",
-                        "flipX",
-                        "flipY",
-                    ],
-                    right: ["slideshow", "thumbs", "close"],
-                },
-            },
-        });
-    }
 
     // 获取图片信息
     function fetchImageInfo(photoUrl) {
@@ -477,7 +487,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 // 首先，解析响应体中的 JSON 字符串
                 const responseBody = JSON.parse(data.body);
-                console.log('response:', responseBody);
                 // 根据响应体中的数据更新 DOM
                 return responseBody;
             })
