@@ -7,14 +7,14 @@ let imageSize = SIZE_MEDIUM; // 默认中图
 // 计算每页显示的图片数量
 function calculatePhotosPerPage() {
     const pageWidth = window.innerWidth; // 获取窗口宽度
-    const pageHeight = window.innerHeight; // 获取窗口高度
-    const imageWidth = imageSize; // 图片宽度，您可以根据实际情况设置
-    const imageHeight = imageSize; // 图片高度，您可以根据实际情况设置
+    const pageHeight = window.innerHeight; // 获取窗口高度作为目标显示范围
+    const imageWidth = imageSize * 1.8; // 图片宽度
+    const imageHeight = imageSize * 1.8; // 图片高度
 
     // 计算每行可以容纳的图片数量
     const imagesPerRow = Math.floor(pageWidth / imageWidth);
 
-    // 计算每列可以容纳的图片数量
+    // 计算每列可以容纳的图片数量，基于调整后的高度
     const imagesPerColumn = Math.floor(pageHeight / imageHeight);
 
     // 计算每页显示的图片数量
@@ -22,15 +22,6 @@ function calculatePhotosPerPage() {
 
     return photosPerPage;
 }
-
-// 在窗口大小变化时重新计算每页显示的图片数量，并重新加载图片
-window.addEventListener('resize', function () {
-    const newPhotosPerPage = calculatePhotosPerPage();
-    if (newPhotosPerPage !== photosPerPage) {
-        photosPerPage = newPhotosPerPage;
-        showPhotos(currentPathArray); // 重新加载图片以适应新的每页图片数量
-    }
-});
 
 document.addEventListener("DOMContentLoaded", function () {
     // ---- 隐藏分页控件 ----
@@ -86,7 +77,23 @@ document.addEventListener("DOMContentLoaded", function () {
         // 显示新路径下的文件夹和图片
         showEvents(newPathVariable);
         showPhotos(newPathVariable);
+
+        // 更新图片和文件夹尺寸后
+        iso.layout();
+
+        // 滚动到页面顶部
+        window.scrollTo(0, 0);
     }
+
+    // 初始化Isotope
+    var iso = new Isotope('#photo-gallery', {
+        itemSelector: '.photo-container', // 或者你用来标识图片容器的类
+        percentPosition: true,
+        masonry: {
+            columnWidth: imageSize * 1.2, // 或者用来保持布局一致性的元素
+            gutter: 10 // 你可以根据需要调整槽宽
+        }
+    });
 
     var totalItemsNum = 0; // 总项目数
     // ---- 设置文件夹委托监听器 ----
@@ -212,7 +219,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // 显示所有事件
     function showEvents(pathArray = ['public']) {
         const gallery = document.getElementById('photo-gallery');
-        document.getElementById('size-controls').style.display = 'none'; // 隐藏尺寸调整按钮
 
         // 根据路径数组遍历到当前目录层级
         let currentLevel = events;
@@ -242,8 +248,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // 设置文件夹风格  
                 const defaultImage = pathArray[0] === 'public' ? defaultPublicEventImages[key] : null;// 检查是否为这个路径设置了默认图片，特别是对于位于public根目录下的文件夹
-                console.log(defaultImage);
-                var originalString = `url("${currentLevel[key].photos?.[0] || defaultImage || 'unnamed.png' }")`;
+                var originalString = `url("${currentLevel[key].photos?.[0] || defaultImage || 'unnamed.png'}")`;
                 eventButton.style.backgroundImage = originalString;
                 eventButton.style.backgroundSize = 'contain';
                 eventButton.style.width = `${imageSize}px`;
@@ -255,7 +260,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // 添加文件夹图标元素
                 const folderIcon = document.createElement('img');
-                defaultImage? folderIcon.style.opacity = 0 : folderIcon.src ='folder.png'; // 替换为你的文件夹图标路径
+                defaultImage ? folderIcon.style.opacity = 0 : folderIcon.src = 'folder.png'; // 替换为你的文件夹图标路径
                 folderIcon.style.width = '50%'; // 根据需要调整大小
                 folderIcon.style.height = '50%';
                 folderIcon.style.position = 'absolute'; // 使用绝对定位
@@ -289,7 +294,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // 根据事件显示照片
     function showPhotos(pathArray) {
         const gallery = document.getElementById('photo-gallery');
-        document.getElementById('size-controls').style.display = 'block'; // 显示尺寸调整按钮
 
         //清除目录里面的照片
         const photoContainers = gallery.querySelectorAll('.photo-container');
@@ -310,6 +314,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const endIndex = Math.min(startIndex + photosPerPage, totalPhotos);
         const photosToShow = photos.slice(startIndex, endIndex);
 
+        // 创建一个存储新元素的数组
+        const newElements = [];
+        // 创建一个存储所有图片加载Promise的数组
+        const loadPromises = [];
+
         photosToShow.forEach(photoUrl => {
             // 创建包含图片和图片名的容器
             const photoContainer = document.createElement('div');
@@ -327,6 +336,15 @@ document.addEventListener("DOMContentLoaded", function () {
             img.style.width = `${imageSize}px`;
             img.style.height = "auto";
             img.style.margin = "10px";
+            photoContainer.style.visibility = 'hidden'; // 初始设置为不可见
+            // 创建一个新的Promise
+            const loadPromise = new Promise((resolve, reject) => {
+                img.onload = function () {
+                    photoContainer.style.visibility = 'visible'; // 图片加载完成后设置为可见
+                    resolve(); // 标记 Promise 为解决状态
+                };
+                img.onerror = reject;
+            });
 
             // 添加图片到链接元素
             link.appendChild(img);
@@ -345,40 +363,95 @@ document.addEventListener("DOMContentLoaded", function () {
             photoContainer.appendChild(nameElement);
             photoContainer.setAttribute('title', photoName);
 
-            // 将容器添加到画廊
-            gallery.appendChild(photoContainer);
 
-            // 为 FancyBox 设置 beforeShow 回调
-            $(link).fancybox({
-                beforeShow: function (instance, slide) {
-                    // 使用当前图片的 URL 调用 fetchImageInfo
-                    fetchImageInfo(photoUrl).then(info => {
-                        console.log('Image info:', info);
-                        // 更新 caption
-                        let newCaption = `
+            gallery.appendChild(photoContainer);// 将容器添加到画廊
+            newElements.push(photoContainer); // 添加新元素到数组中
+            loadPromises.push(loadPromise);// 将这个Promise添加到数组中
+
+            if (link.dataset.caption === 'Loading...') {
+                // 为 FancyBox 设置 beforeShow 回调
+                Fancybox.bind("[data-fancybox]", {
+                    on: {
+                        "loaded": (fancybox, slide) => {
+                            console.log('beforeLoad:', fancybox, slide);
+                            // 使用当前图片的 URL 调用 fetchImageInfo
+                            fetchImageInfo(photoUrl).then(info => {
+                                // 更新 caption
+                                let newCaption = `
                         <div>
-                        <span class="caption-key">⌛Exposure Time: </span> <span class="caption-value">${info['Exposure Time']}</span><br>
-                        <span class="caption-key">💿Aperture: </span> <span class="caption-value">${info['F Number']}</span><br>
-                        <span class="caption-key">🔆ISO Speed: </span> <span class="caption-value">${info['ISO Speed']}</span><br>
-                        <span class="caption-key">🔭Focal Length: </span> <span class="caption-value">${info['Focal Length']}</span><br>
-                        <span class="caption-key">📸Flash: </span> <span class="caption-value">${info['Flash']}</span>
-                        </div>
+                        <span class="caption-key">⏳ Exposure Time: </span> <span class="caption-value">${info['Exposure Time']}</span><br>
+                        <span class="caption-key">📀 Aperture: </span> <span class="caption-value">${info['F Number']}</span><br>
+                        <span class="caption-key">☀️ ISO Speed: </span> <span class="caption-value">${info['ISO Speed']}</span><br>
+                        <span class="caption-key">🔬 Focal Length: </span> <span class="caption-value">${info['Focal Length']}</span><br>
+                        <span class="caption-key">📷 Flash: </span> <span class="caption-value">${info['Flash']}</span>
+                    </div>
                         `;
-                        // 试着直接更新 caption 文本
-                        $(".fancybox-caption").html(newCaption);
-                        instance.current.opts.caption = newCaption; //直接更新实例属性
-                    }).catch(error => {
-                        console.error('Error fetching image info:', error);
-                        $(".fancybox-caption").text("Image information is not available.");
-                        instance.current.opts.caption = "Image information is not available."; // 直接更新实例属性
-                    });
-                }
-            });
+                                slide.caption = newCaption;
+                                // 试着直接更新 caption 文本;
+                                fancybox.setContent(slide, slide); //直接更新实例属性
+                            }).catch(error => {
+                                console.error('Error fetching image info:', error);
+                                slide.caption = "Image information is not available.";
+                                fancybox.setContent(slide, slide);
+                            });
+                        }
+                    }
+                });
+            }
         });
 
         setupLazyLoading(); // 为新添加的图片设置懒加载
+        // 使用 imagesLoaded 确保所有图片加载完成后再执行 Isotope 布局
+        Promise.all(loadPromises).then(() => {
+            iso.appended(newElements);
+            iso.layout();
+            // 初始化或重新初始化 FancyBox
+            reinitFancybox();
+        }).catch(error => console.error('Error loading images:', error));
+
         updatePagination(totalPhotos, pathArray); // 确保正确计算和传递总图片数
         updateBreadcrumb(pathArray); // 更新面包屑导航
+    }
+
+    // FancyBox 的初始化或重新初始化
+    function reinitFancybox() {
+        Fancybox.bind("[data-fancybox='gallery']", {
+            loop: true,
+            contentClick: "iterateZoom",
+            Images: {
+                Panzoom: {
+                    maxScale: 2,
+                },
+                protected: true,
+            },
+            buttons: [
+                'slideShow',
+                'zoom',
+                'fullScreen',
+                'close',
+                'thumbs'
+            ],
+            thumbs: {
+                autoStart: true,
+                axis: 'y',
+                type: "modern",
+            },
+            Toolbar: {
+                display: {
+                    left: ["infobar"],
+                    middle: [
+                        "zoomIn",
+                        "zoomOut",
+                        "toggle1to1",
+                        "rotateCCW",
+                        "rotateCW",
+                        "flipX",
+                        "flipY",
+                    ],
+                    right: ["slideshow", "thumbs", "close"],
+                },
+            },
+        });
     }
 
     // 获取图片信息
@@ -416,33 +489,38 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    function updatePagination(totalPhotos, pathArray) {
+    // 更新分页控件
+    function updatePagination(totalItems, pathArray) {
         const pagination = document.getElementById('pagination');
         pagination.innerHTML = ''; // 清空现有的分页按钮
 
-        const totalPages = Math.ceil(totalPhotos / photosPerPage);
+        // 根据项目类型（事件或照片）计算总页数
+        const totalPages = Math.ceil(totalItems / photosPerPage);
+
+        // 如果只有一页或没有内容，隐藏分页控件
         if (totalPages <= 1) {
             pagination.style.display = 'none';
             return;
         } else {
-            pagination.style.display = 'block';
+            pagination.style.display = 'block'; // 确保分页控件可见
         }
 
+        // 为每一页创建一个按钮
         for (let i = 1; i <= totalPages; i++) {
             const pageButton = document.createElement('button');
             pageButton.textContent = i;
             if (i === currentPage) {
-                pageButton.classList.add('active'); // 标记当前页码的按钮
+                pageButton.classList.add('active'); // 标记当前页码的按钮为活动状态
             }
             pageButton.addEventListener('click', () => {
-                currentPage = i;
-                // 更新分页按钮状态
-                updatePagination(totalPhotos, pathArray);
-                // 只更新当前页的图片
-                showPhotos(pathArray); // 重新显示当前目录的图片
+                currentPage = i; // 更新当前页
+                updatePagination(totalItems, pathArray); // 重要：在页面变化时更新分页控件状态
+                showPhotos(pathArray); // 根据新的当前页显示图片
             });
             pagination.appendChild(pageButton);
         }
+        // 滚动到页面顶部
+        window.scrollTo(0, 0);
     }
 
     // 更新面包屑导航函数

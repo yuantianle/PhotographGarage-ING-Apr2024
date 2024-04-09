@@ -111,10 +111,8 @@ body {
 }
 
 #photo-gallery {
-    text-align: left;
-    display: wrapper;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 10px;
+    z-index: 1000;
+    width: 95%;
 }
 
 #photo-gallery a {
@@ -146,37 +144,57 @@ body {
 
 /* 分页控件的容器样式 */
 #pagination {
+    position: fixed;
+    bottom: 0; /* 放置在页面的底部 */
+    left: 50%; /* 水平居中 */
+    transform: translateX(-50%); /* 使用 transform 来确保完美居中 */
+    width: auto; /* 根据内容自动调整宽度 */
+    padding: 10px; /* 添加一些内边距以便于点击 */
     text-align: center;
     margin: 20px 0;
     display: flex;
     justify-content: center; /* 使分页按钮居中 */
     flex-wrap: wrap; /* 允许分页按钮在必要时换行 */
+    border-top: 2px solid #008d88; /* 顶部边框，增加一些视觉区隔 */
+    z-index: 1000; /* 确保分页控件位于其他内容之上 */
 }
 
 /* 分页按钮的基本样式 */
 #pagination button {
-    border: 1px solid #007bff; /* 蓝色边框 */
     background-color: #ffffff; /* 白色背景 */
-    color: #007bff; /* 蓝色文字 */
+    color: #006c5a; /* 蓝色文字 */
     padding: 5px 10px; /* 按钮内边距 */
     margin: 0 5px; /* 按钮间的间距 */
     cursor: pointer; /* 鼠标悬停时的光标形状 */
     transition: all 0.3s ease-in-out;
     transform: scale(0.9); /* 默认时稍微缩小 */
+    border-radius: 30%;
+    font-weight: bold;
 }
 
 /* 分页按钮在鼠标悬停时的样式 */
 #pagination button:hover {
     background-color: #007bff; /* 按钮背景色变为蓝色 */
-    color: #ffffff; /* 文字颜色变为白色 */
+    color: #f6ff00; /* 文字颜色变为白色 */
 }
 
 /* 当前选中的分页按钮的样式 */
 #pagination button.active {
-    background-color: #0056b3; /* 更深的蓝色背景表示选中状态 */
-    color: #ffffff;
+    background-color: #00726a; /* 更深的蓝色背景表示选中状态 */
+    color: #280000;
     border-color: #004085; /* 更深的边框颜色 */
     transform: scale(1.1); /* 选中的按钮稍微放大 */
+}
+
+.fancybox-protected {
+    background: url('logo_reverse.png');
+    background-repeat: no-repeat;
+    background-position-x: 90%;
+    background-position-y: 90%;
+    opacity: 50%;
+    height: 100%;
+    width: 100%;
+    background-size: 80px auto;
 }
 
 /* 确保 caption 容器本身居中 */
@@ -252,9 +270,11 @@ body {
 }
 
 .photo-container {
+    text-align: left;
     display: inline-block; /* 或flex, 根据需要调整 */
     text-align: center; /* 使图片和文字居中 */
-    margin: 10px; /* 添加一些外边距 */
+    margin-bottom: 10px; /* 添加一些外边距 */
+    z-index: 1000; /* 确保图片位于其他内容之上 */
 }
 
 .photo-name {
@@ -288,6 +308,7 @@ body {
     display: none;
     position: absolute;
     right: 0;
+    z-index: 2000; /* 确保这个容器在其他内容之上 */
 }
 
 .size-btn {
@@ -326,6 +347,7 @@ body {
     color: #ffffff; /* 选中状态的文本颜色 */
     border-color: #0056b3; /* 选中状态的边框颜色 */
     transform: scale(1.1); /* 稍微放大 */
+    z-index: 2100; /* 确保按钮位于#size-controls和其他内容之上 */
 }
 
 /* 按钮定位调整，确保它们在四分之一圆周上 */

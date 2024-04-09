@@ -3,15 +3,16 @@
 
 <head>
     <title>Photo Album</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
+    <script src="https://unpkg.com/isotope-layout@3.0.6/dist/isotope.pkgd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="index.css">
     <script src="index.js"></script>
 </head>
 
-<body>    
+<body>
     <div id="loading-indicator" class="loading-hidden"></div>
     <div id="breadcrumb"></div>
     <div id="back-button" style="margin-bottom: 20px; display: none;">
@@ -35,5 +36,54 @@
     <div id="pagination" style="margin-top: 20px;"></div> <!-- 分页控件 -->
 
 </body>
+
+<!--forbidden copy-->
+<script type="text/javascript">
+    //document.oncontextmenu=new Function("event.returnValue=false");
+    //document.onselectstart=new Function("event.returnValue=false");
+</script>
+
+<!--forbidden F12-->
+<script type="text/javascript">
+    document.onkeydown = function () {
+        if (window.event && window.event.keyCode == 123) {
+            event.keyCode = 0;
+            event.returnValue = false;
+            return false;
+        }
+    };
+</script>
+
+<!--forbidden mobile
+<script type="text/javascript">
+    //ios
+    document.oncontextmenu = function (e) {
+        console.log('oncontextmenu');
+        e.preventDefault();
+    };
+    document.addEventListener('selectstart', function(e) {
+    console.log('selectstart');
+    e.preventDefault();
+    }, true) 
+    //安卓
+    document.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+    });
+    document.ontouchend = function () {
+        throw new Error("NO ERRPR:禁止长按弹出");
+    }
+    window.ontouchstart = function(e) {
+        e.preventDefault();
+    };
+    document.body.addEventListener('touchstart', function () { });
+    document.body.onbeforecopy = function () {
+        window.getSelection().removeAllRanges();
+    }
+    document.body.oncopy = function () {
+        window.getSelection().removeAllRanges();
+        return false;
+    }
+
+</script>-->
 
 </html>
