@@ -4,6 +4,20 @@ const SIZE_MEDIUM = 150;
 const SIZE_LARGE = 220;
 let imageSize = SIZE_MEDIUM; // 默认中图
 
+// 默认的公共事件图片的图片映射
+const defaultPublicEventImages = {
+    'Polaroid': 'polaroid.png',
+    'Canon_Digital': 'canon_digit.png',
+    'Canon_Film': 'canon_film.png',
+};
+
+let currentPage = 1; // 当前页码
+
+var photosPerPage = -1;
+
+let events = {}; // 存储更复杂的结构来存储嵌套目录
+let eventsCache = {}; // 确保eventsCache在这里被定义
+
 // 计算每页显示的图片数量
 function calculatePhotosPerPage() {
     const pageWidth = window.innerWidth; // 获取窗口宽度
@@ -23,21 +37,24 @@ function calculatePhotosPerPage() {
     return photosPerPage;
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
     // ---- 隐藏分页控件 ----
     const pagination = document.getElementById('pagination');
 
     // ---- 懒加载图片 ----
-    const imageObserver = new IntersectionObserver((entries, observer) => { // 创建 IntersectionObserver 实例
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const image = entry.target;
-                image.src = image.dataset.src;
-                observer.unobserve(image); // 图片加载后取消观察
-            }
-        });
-    }, { rootMargin: "50px 0px", threshold: 0.01 });
     function setupLazyLoading() {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const image = entry.target;
+                    const src = image.dataset.src;
+                    if (src) { // 只在 src 实际存在时才尝试加载图片
+                        image.src = src;
+                    }
+                    observer.unobserve(image); // 图片加载后取消观察
+                }
+            });
+        }, { rootMargin: "50px 0px", threshold: 0.01 });
         const lazyLoadImages = document.querySelectorAll('img[data-src]');
         lazyLoadImages.forEach(image => imageObserver.observe(image));
     }
@@ -154,30 +171,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // ---- 从API获取数据 ----
-    let events = {}; // 存储更复杂的结构来存储嵌套目录
-    document.getElementById('loading-indicator').style.display = 'block'; // 显示加载指示器
-    // 模拟从API获取数据 (完成)
-    fetch('https://7jaqpxmr1h.execute-api.us-west-2.amazonaws.com/prod')
-        .then(response => {
+    async function fetchData() {
+        const apiUrl = 'https://7jaqpxmr1h.execute-api.us-west-2.amazonaws.com/prod';
+        if (eventsCache[apiUrl]) {
+            console.log('Using cached data');
+            return eventsCache[apiUrl]; // 使用缓存的数据
+        }
+
+        try {
+            const response = await fetch(apiUrl);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            return response.json();
-        })
-        .then(data => {
-            if (data.body) {
-                const photos = JSON.parse(data.body);
-                processPhotos(photos);
-                showEvents(['public']); // 初次加载页面时显示所有事件
-                showPhotos(['public']); // 初次加载页面时显示所有图片
-                updateBreadcrumb(['public']); // 初始路径
-                updatePagination('public', 1); // 初始分页控件
-            }
-        })
-        .catch(error => console.error('Error:', error))
-        .finally(() => {
-            document.getElementById('loading-indicator').style.display = 'none'; // 隐藏加载指示器
-        });;
+            const data = await response.json();
+            eventsCache[apiUrl] = data; // 缓存数据
+            console.log('Fetched data from API', data);
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+            return null;
+        }
+    }
+
+    document.getElementById('loading-indicator').style.display = 'block'; // 显示加载指示器
+    const data = await fetchData(); // 使用新的fetchData函数
+    if (data && data.body) {
+        const photos = JSON.parse(data.body);
+        processPhotos(photos);
+        showEvents(['public']); // 初次加载页面时显示所有事件
+        showPhotos(['public']); // 初次加载页面时显示所有图片
+        updateBreadcrumb(['public']); // 初始路径
+        updatePagination('public', 1); // 初始分页控件
+    }
+    document.getElementById('loading-indicator').style.display = 'none'; // 隐藏加载指示器
 
     function processPhotos(photos) {
         const imageExtensions = /\.(jpg|jpeg|png)$/i;
@@ -208,13 +234,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-
-    // 默认的公共事件图片的图片映射
-    const defaultPublicEventImages = {
-        'Polaroid': 'polaroid.png',
-        'Canon_Digital': 'canon_digit.png',
-        'Canon_Film': 'canon_film.png',
-    };
 
     // 显示所有事件
     function showEvents(pathArray = ['public']) {
@@ -288,11 +307,25 @@ document.addEventListener("DOMContentLoaded", function () {
         updateBreadcrumb(pathArray); // 更新面包屑导航
     }
 
-    let currentPage = 1; // 当前页码
-    const photosPerPage = calculatePhotosPerPage(); // 每页显示的图片数量
+    // 为每张图片异步加载JSON信息
+    async function fetchPhotoInfo(baseImageUrl) {
+        const infoUrl = `${baseImageUrl}_info.json`;
+        try {
+            const response = await fetch(infoUrl);
+            if (!response.ok) {
+                throw new Error('Failed to fetch photo info');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching photo info:', error);
+            return null;
+        }
+    }
+
+    photosPerPage = calculatePhotosPerPage(); // 每页显示的图片数量
 
     // 根据事件显示照片
-    function showPhotos(pathArray) {
+    async function showPhotos(pathArray) {
         const gallery = document.getElementById('photo-gallery');
 
         //清除目录里面的照片
@@ -319,31 +352,29 @@ document.addEventListener("DOMContentLoaded", function () {
         // 创建一个存储所有图片加载Promise的数组
         const loadPromises = [];
 
-        photosToShow.forEach(photoUrl => {
+        for (const photoUrl of photosToShow) {
             // 创建包含图片和图片名的容器
             const photoContainer = document.createElement('div');
             photoContainer.classList.add('photo-container'); // 可以添加样式
 
             const link = document.createElement('a');
-            link.href = photoUrl;
+            link.href = photoUrl; //原图URL
             link.dataset.fancybox = 'gallery';
-            link.dataset.caption = `
-            <div style="
-                position: absolute;
-                top: 90%;
-                left: 3%;
-                font-size: 1.2em;
-            ">Loading...</div>
-        `;
+            // 替换URL路径指向压缩图片
+            const compressedPhotoUrl = photoUrl.replace('public', 'public_small');
+            const baseImageUrl = compressedPhotoUrl.replace(/\.\w+$/, ''); // 删除最后的文件扩展名，如 .png
 
             // 创建图片元素
             const img = document.createElement('img');
-            img.setAttribute('data-src', photoUrl); // 设置图片源
+            img.setAttribute('data-src', compressedPhotoUrl); // 这里是压缩图URL，懒加载
+            console.log(compressedPhotoUrl);
             img.classList.add('lazy'); // 可以添加一个类以便于样式设定
             img.style.width = `${imageSize}px`;
             img.style.height = "auto";
             img.style.margin = "10px";
             photoContainer.style.visibility = 'hidden'; // 初始设置为不可见
+
+            const infoPromise = fetchPhotoInfo(baseImageUrl); // 不立即await
             // 创建一个新的Promise
             const loadPromise = new Promise((resolve, reject) => {
                 img.onload = function () {
@@ -353,8 +384,35 @@ document.addEventListener("DOMContentLoaded", function () {
                 img.onerror = reject;
             });
 
+            try {
+                const [info] = await Promise.all([infoPromise]);            
+                // 现在设置caption和其他信息
+
+                if (!info) {
+                    console.error('No info found for', photoUrl);
+                    return;
+                }
+                link.dataset.caption = `
+                            <div style="
+                            position: absolute;
+                            top: 90%;
+                            left: 3%;
+                            font-size: 1.2em;
+                        ">
+                        <span class="caption-key">⏳ Exposure Time: </span> <span class="caption-value">${info['Exposure Time']}</span><br>
+                        <span class="caption-key">💿 Aperture: </span> <span class="caption-value">${info['F Number']}</span><br>
+                        <span class="caption-key">🔆 ISO Speed: </span> <span class="caption-value">${info['ISO Speed']}</span><br>
+                        <span class="caption-key">🔭 Focal Length: </span> <span class="caption-value">${info['Focal Length']}</span><br>
+                        <span class="caption-key">📸 Flash: </span> <span class="caption-value">${info['Flash']}</span>
+                    </div>
+                    `;
+
+            } catch (error) {
+                console.error("Error loading resources", error);
+            }
             // 添加图片到链接元素
             link.appendChild(img);
+            link.dataset.fancybox = "gallery1";
 
             // 提取图片名（假设URL结构为 .../eventName/photoName.jpg）
             const photoName = photoUrl.split('/').pop().split('?')[0]; // 移除URL的查询参数（如果有）
@@ -362,6 +420,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // 创建并添加图片名的文本元素
             const nameElement = document.createElement('div');
             nameElement.textContent = photoName;
+            console.log(photoName);
             nameElement.classList.add('photo-name'); // 添加样式
             nameElement.style.width = `${imageSize}px`; // 动态设置宽度以匹配图片
 
@@ -370,85 +429,42 @@ document.addEventListener("DOMContentLoaded", function () {
             photoContainer.appendChild(nameElement);
             photoContainer.setAttribute('title', photoName);
 
-
             gallery.appendChild(photoContainer);// 将容器添加到画廊
             newElements.push(photoContainer); // 添加新元素到数组中
             loadPromises.push(loadPromise);// 将这个Promise添加到数组中
+        };
 
-            if (link.dataset.caption === `
-            <div style="
-                position: absolute;
-                top: 90%;
-                left: 3%;
-                font-size: 1.2em;
-            ">Loading...</div>
-        `) {
-                // 为 FancyBox 设置 beforeShow 回调
-                Fancybox.bind("[data-fancybox = 'gallery']", {
-                    on: {
-                        "loaded": (fancybox, slide) => {
-                            // 使用当前图片的 URL 调用 fetchImageInfo
-                            fetchImageInfo(photoUrl).then(info => {
-                                // 更新 caption
-                                let newCaption = `
-                                <div style="
-                                position: absolute;
-                                top: 90%;
-                                left: 3%;
-                                font-size: 1.2em;
-                            ">
-                            <span class="caption-key">⏳ Exposure Time: </span> <span class="caption-value">${info['Exposure Time']}</span><br>
-                            <span class="caption-key">💿 Aperture: </span> <span class="caption-value">${info['F Number']}</span><br>
-                            <span class="caption-key">🔆 ISO Speed: </span> <span class="caption-value">${info['ISO Speed']}</span><br>
-                            <span class="caption-key">🔭 Focal Length: </span> <span class="caption-value">${info['Focal Length']}</span><br>
-                            <span class="caption-key">📸 Flash: </span> <span class="caption-value">${info['Flash']}</span>
-                        </div>
-                        `;
-                                slide.caption = newCaption;
-                                fancybox.setContent(slide); //直接更新实例属性
-                            }).catch(error => {
-                                console.error('Error fetching image info:', error);
-                                slide.caption = "Image information is not available.";
-                                fancybox.setContent(slide);
-                            });
-                        }
-                    },
-                    loop: true,
-                    contentClick: "iterateZoom",
-                    Images: {
-                        Panzoom: {
-                            maxScale: 3,
-                        },
-                        protected: true,
-                    },
-                    buttons: [
-                        'slideShow',
-                        'zoom',
-                        'fullScreen',
-                        'close',
-                        'thumbs'
+        Fancybox.bind("[data-fancybox = 'gallery1']", {
+            loop: true,
+            contentClick: "toggleCover",
+            Images: {
+                Panzoom: {
+                    maxScale: 2,
+                },
+                protected: false,
+            },
+            buttons: [
+                'slideShow',
+                'zoom',
+                'fullScreen',
+                'close',
+                'thumbs'
+            ],
+            Toolbar: {
+                display: {
+                    left: ["infobar"],
+                    middle: [
+                        "zoomIn",
+                        "zoomOut",
+                        "toggle1to1",
+                        "rotateCCW",
+                        "rotateCW",
+                        "flipX",
+                        "flipY",
                     ],
-                    thumbs: {
-                        autoStart: true,
-                        axis: 'y',
-                        type: "modern",
-                    },
-                    Toolbar: {
-                        display: {
-                            left: ["infobar"],
-                            middle: [
-                                "zoomIn",
-                                "zoomOut",
-                                "toggle1to1",
-                                "rotateCCW",
-                                "rotateCW",
-                                "flipX",
-                                "flipY",
-                            ],
-                            right: ["slideshow", "thumbs", "close"],
-                        },
-                    }
-                });
+                    right: ["slideshow", "thumbs", "close"],
+                },
+
             }
         });
 
@@ -461,41 +477,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updatePagination(totalPhotos, pathArray); // 确保正确计算和传递总图片数
         updateBreadcrumb(pathArray); // 更新面包屑导航
-    }
-
-
-    // 获取图片信息
-    function fetchImageInfo(photoUrl) {
-        document.getElementById('loading-indicator').style.display = 'block'; // 显示加载指示器
-        // 提取 photoKey 从完整的 S3 URL
-        const urlParts = new URL(photoUrl);
-        const photoKey = urlParts.pathname.substring(1); // 移除开头的斜杠
-
-        console.log('Fetching image info for:', photoKey);
-        // 修改URL为您的API Gateway暴露的Lambda函数的端点
-        const apiUrl = `https://7jaqpxmr1h.execute-api.us-west-2.amazonaws.com/prod/imageinfo?photoKey=${encodeURIComponent(photoKey)}`;
-
-        // 发送GET请求到Lambda函数
-        return fetch(apiUrl)
-            .then(response => {
-                //console.log('Response:', response);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // 首先，解析响应体中的 JSON 字符串
-                const responseBody = JSON.parse(data.body);
-                // 根据响应体中的数据更新 DOM
-                return responseBody;
-            })
-            .catch(error => {
-                console.error('Error fetching image info:', error);
-            })
-            .finally(() => {
-                document.getElementById('loading-indicator').style.display = 'none'; // 隐藏加载指示器
-            });
     }
 
     // 更新分页控件
