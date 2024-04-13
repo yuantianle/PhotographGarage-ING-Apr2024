@@ -3,6 +3,7 @@ const SIZE_SMALL = 80;
 const SIZE_MEDIUM = 150;
 const SIZE_LARGE = 220;
 let imageSize = SIZE_MEDIUM; // 默认中图
+let paginationEnabled = true; // 默认启用分页
 
 // 默认的公共事件图片的图片映射
 const defaultPublicEventImages = {
@@ -23,7 +24,7 @@ function calculatePhotosPerPage() {
     const pageWidth = window.innerWidth; // 获取窗口宽度
     const pageHeight = window.innerHeight; // 获取窗口高度作为目标显示范围
     const imageWidth = imageSize * 1.8; // 图片宽度
-    const imageHeight = imageSize * 1.8; // 图片高度
+    const imageHeight = imageSize * 1.7; // 图片高度
 
     // 计算每行可以容纳的图片数量
     const imagesPerRow = Math.floor(pageWidth / imageWidth);
@@ -38,8 +39,44 @@ function calculatePhotosPerPage() {
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
-    // ---- 隐藏分页控件 ----
-    const pagination = document.getElementById('pagination');
+
+    // 获取按钮元素
+    const paginationToggleButton = document.getElementById('pagination-toggle');
+
+    // 设置按钮初始状态
+    if (paginationEnabled) {
+        paginationToggleButton.classList.add('active');
+        paginationToggleButton.innerHTML = '<i class="fa fa-toggle-on"></i> Pagin';
+    } else {
+        paginationToggleButton.classList.remove('active');
+        paginationToggleButton.innerHTML = '<i class="fa fa-toggle-off"></i> Pagin';
+    }
+    // ---- 监听分页按钮 ----
+    document.getElementById('pagination-toggle').addEventListener('click', function () {
+        paginationEnabled = !paginationEnabled; // 切换分页状态
+
+        // 获取分页控件的元素
+        const paginationControls = document.getElementById('pagination');
+
+        // 根据分页是否启用来显示或隐藏分页控件
+        paginationControls.style.display = paginationEnabled ? 'block' : 'none';
+
+        // 根据分页是否启用来重新加载图片
+        showPhotos(currentEvent.split('/'));
+
+        // 根据 paginationEnabled 的状态更新按钮的激活状态
+        if (paginationEnabled) {
+            this.classList.add('active');
+            this.innerHTML = '<i class="fa fa-toggle-on"></i> Pagin'; // 更新为激活状态的文本和图标
+        } else {
+            this.classList.remove('active');
+            this.innerHTML = '<i class="fa fa-toggle-off"></i> Pagin'; // 更新为非激活状态的文本和图标
+        }
+
+        // 阻止事件冒泡，避免触发上层元素的事件
+        event.stopPropagation();
+
+    });
 
     // ---- 懒加载图片 ----
     function setupLazyLoading() {
@@ -71,6 +108,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById('size-medium').addEventListener('click', () => setImageSize(SIZE_MEDIUM));
     document.getElementById('size-large').addEventListener('click', () => setImageSize(SIZE_LARGE));
 
+    const sizeButtons = document.querySelectorAll('.size-btn');
+    sizeButtons.forEach(btn => {
+        if (parseInt(btn.getAttribute('data-size'), 10) === imageSize) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
     function setImageSize(size, path) {
         imageSize = size;
 
@@ -185,7 +230,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
             const data = await response.json();
             eventsCache[apiUrl] = data; // 缓存数据
-            console.log('Fetched data from API', data);
             return data;
         } catch (error) {
             console.error('Error:', error);
@@ -341,11 +385,26 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
         const photos = currentLevel.photos || [];
 
+        // 根据当前图片数量决定是否显示分页控制按钮
+        const paginationToggleButton = document.getElementById('pagination-toggle');
+        if (photos.length > 1) { // 如果我们处在子文件夹（即图片文件夹）中
+            paginationToggleButton.style.display = 'block';
+        } else { // 如果我们不在图片文件夹中
+            paginationToggleButton.style.display = 'none';
+        }
+
         const totalPhotos = photos.length;
+        let photosToShow;
         // 计算当前页应显示的图片
-        const startIndex = (currentPage - 1) * photosPerPage;
-        const endIndex = Math.min(startIndex + photosPerPage, totalPhotos);
-        const photosToShow = photos.slice(startIndex, endIndex);
+        if (paginationEnabled) {
+            // 计算当前页应显示的图片
+            const startIndex = (currentPage - 1) * photosPerPage;
+            const endIndex = Math.min(startIndex + photosPerPage, totalPhotos);
+            photosToShow = photos.slice(startIndex, endIndex);
+        } else {
+            // 如果分页未启用，显示所有图片
+            photosToShow = photos;
+        }
 
         // 创建一个存储新元素的数组
         const newElements = [];
@@ -367,7 +426,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             // 创建图片元素
             const img = document.createElement('img');
             img.setAttribute('data-src', compressedPhotoUrl); // 这里是压缩图URL，懒加载
-            console.log(compressedPhotoUrl);
             img.classList.add('lazy'); // 可以添加一个类以便于样式设定
             img.style.width = `${imageSize}px`;
             img.style.height = "auto";
@@ -385,7 +443,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
 
             try {
-                const [info] = await Promise.all([infoPromise]);            
+                const [info] = await Promise.all([infoPromise]);
                 // 现在设置caption和其他信息
 
                 if (!info) {
@@ -420,7 +478,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             // 创建并添加图片名的文本元素
             const nameElement = document.createElement('div');
             nameElement.textContent = photoName;
-            console.log(photoName);
             nameElement.classList.add('photo-name'); // 添加样式
             nameElement.style.width = `${imageSize}px`; // 动态设置宽度以匹配图片
 
@@ -475,7 +532,10 @@ document.addEventListener("DOMContentLoaded", async function () {
             iso.layout();
         }).catch(error => console.error('Error loading images:', error));
 
-        updatePagination(totalPhotos, pathArray); // 确保正确计算和传递总图片数
+        // 更新分页控件
+        if (paginationEnabled) {
+            updatePagination(totalPhotos, pathArray); // 仅当分页启用时更新分页控件
+        }
         updateBreadcrumb(pathArray); // 更新面包屑导航
     }
 
@@ -532,6 +592,11 @@ document.addEventListener("DOMContentLoaded", async function () {
                 showEvents(newPathArray);
                 showPhotos(newPathArray);
             });
+
+            // 如果是路径数组的最后一个元素，则添加高亮样式类
+            if (index === pathArray.length - 1) {
+                crumbLink.classList.add('active-breadcrumb');
+            }
 
             breadcrumb.appendChild(crumbLink);
             if (index < pathArray.length - 1) {

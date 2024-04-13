@@ -84,6 +84,11 @@ body {
     text-decoration: underline; /* 添加下划线增强交互性 */
 }
 
+.active-breadcrumb {
+    font-weight: bold;
+    color: rgb(136, 209, 255) !important; /* 高亮颜色 */
+}
+
 
 #back-button button {
     background-color: #3742fa;
@@ -295,13 +300,14 @@ body {
     text-align: center;
     margin-bottom: 10px;
     position: relative;
+    z-index: 2000;
 }
 
 #size-controls {
     display: none;
     position: absolute;
     right: 0;
-    z-index: 2000; /* 确保这个容器在其他内容之上 */
+    z-index: 2001; /* 确保这个容器在其他内容之上 */
 }
 
 .size-btn {
@@ -314,8 +320,6 @@ body {
     margin: 0 10px; /* 按钮之间的间隔 */
     transition: all 0.3s ease; /* 平滑过渡效果 */
     position: absolute; /* 绝对定位以形成圆形 */
-}
-.size-btn {
     display: block;
     width: 50px;
     margin: 5px 0;
@@ -330,23 +334,62 @@ body {
     transition: all 0.3s ease;
 }
 
+.page-btn {
+    border: 1px solid #007bff; /* 边框 */
+    background-color: #007bff; /* 背景 */
+    color: #ffffff; /* 蓝色文本 */
+    padding: 10px ; /* 内边距 */
+    border-radius: 5px; /* 圆角 */
+    cursor: pointer; /* 手型光标 */
+    margin: 0 10px; /* 按钮之间的间隔 */
+    transition: all 0.3s ease; /* 平滑过渡效果 */
+    position: absolute; /* 绝对定位以形成圆形 */
+    display: block;
+    width: 50px;
+    margin: 5px 0;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
+}
+
+#size-controls.show .page-btn {
+    opacity: 1;
+    transform: scale(1);
+    transition: all 0.3s ease;
+}
+
 .size-btn:hover {
     background-color: #ffffff; /* 悬停时的背景颜色 */
     color: #007bff; /* 悬停时的文本颜色 */
 }
 
 .size-btn.active {
-    background-color: #9500ff; /* 选中状态的背景颜色 */
+    background-color: #ff6acb; /* 选中状态的背景颜色 */
     color: #ffffff; /* 选中状态的文本颜色 */
     border-color: #0056b3; /* 选中状态的边框颜色 */
     transform: scale(1.1); /* 稍微放大 */
     z-index: 2100; /* 确保按钮位于#size-controls和其他内容之上 */
 }
 
+
+.page-btn:hover {
+    background-color: #ffffff; /* 悬停时的背景颜色 */
+    color: #007bff; /* 悬停时的文本颜色 */
+}
+
+.page-btn.active {
+    background-color: #ff6acb; /* 选中状态的背景颜色 */
+    color: #ffffff; /* 选中状态的文本颜色 */
+    border-color: #0056b3; /* 选中状态的边框颜色 */
+    transform: scale(1.1); /* 稍微放大 */
+    z-index: 2100; /* 确保按钮位于#size-controls和其他内容之上 */
+}
+
+
 /* 按钮定位调整，确保它们在四分之一圆周上 */
 #size-large {
     right: 0;
-    bottom: -100px;
+    bottom: -105px;
 }
 
 #size-medium {
@@ -357,6 +400,11 @@ body {
 #size-small {
     right: 104px; /* 根据实际需要调整 */
     bottom: 0;
+}
+
+#pagination-toggle {
+    right: 0px; /* 根据实际需要调整 */
+    bottom: -170px;
 }
 
 .loading-hidden {
