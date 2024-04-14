@@ -498,7 +498,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 Panzoom: {
                     maxScale: 2,
                 },
-                protected: false,
+                protected: true,
             },
             buttons: [
                 'slideShow',

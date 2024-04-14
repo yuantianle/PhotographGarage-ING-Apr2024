@@ -303,6 +303,11 @@ body {
     z-index: 2000;
 }
 
+#size-controls-toggle:hover {
+    background-color: #ffe9a1;
+    color: #000000;
+}
+
 #size-controls {
     display: none;
     position: absolute;
