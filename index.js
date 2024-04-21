@@ -223,6 +223,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             return eventsCache[apiUrl]; // 使用缓存的数据
         }
 
+        toggleLoadingIndicator(true);
         try {
             const response = await fetch(apiUrl);
             if (!response.ok) {
@@ -235,9 +236,27 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.error('Error:', error);
             return null;
         }
+        finally {
+            toggleLoadingIndicator(false);
+        }
     }
 
-    document.getElementById('loading-indicator').style.display = 'block'; // 显示加载指示器
+function toggleLoadingIndicator(show) {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (show) {
+        loadingIndicator.style.visibility = 'visible';
+        loadingIndicator.style.opacity = '1';
+        loadingIndicator.style.transform = 'translate(-50%, -50%) scale(1)';
+    } else {
+        loadingIndicator.style.opacity = '0';
+        loadingIndicator.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        // 当动画完成后设置visibility为hidden
+        setTimeout(() => {
+            loadingIndicator.style.visibility = 'hidden';
+        }, 500); // 500ms是过渡时间
+    }
+}
+
     const data = await fetchData(); // 使用新的fetchData函数
     if (data && data.body) {
         const photos = JSON.parse(data.body);
@@ -247,7 +266,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         updateBreadcrumb(['public']); // 初始路径
         updatePagination('public', 1); // 初始分页控件
     }
-    document.getElementById('loading-indicator').style.display = 'none'; // 隐藏加载指示器
 
     function processPhotos(photos) {
         const imageExtensions = /\.(jpg|jpeg|png)$/i;
@@ -302,6 +320,20 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         updateBreadcrumb(pathArray); // 更新面包屑导航
 
+        // 显示加载指示器
+        toggleLoadingIndicator(true);
+
+        let imagesToLoad = 0; // 跟踪需要加载的图片数量
+        let imagesLoaded = 0; // 跟踪已加载的图片数量
+
+        function checkAllImagesLoaded() {
+            imagesLoaded++;
+            if (imagesLoaded === imagesToLoad) {
+                // 所有图片都已处理，隐藏加载指示器
+                toggleLoadingIndicator(false);
+            }
+        }
+
         Object.keys(currentLevel).forEach(key => {
             if ((typeof currentLevel[key] === 'object' && currentLevel[key] !== null) && key !== 'photos') {
                 // 创建文件夹按钮
@@ -311,15 +343,20 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                 // 设置文件夹风格  
                 const defaultImage = pathArray[0] === 'public' ? defaultPublicEventImages[key] : null;// 检查是否为这个路径设置了默认图片，特别是对于位于public根目录下的文件夹
-                var originalString = `url("${currentLevel[key].photos?.[0] || defaultImage || 'unnamed.png'}")`;
-                eventButton.style.backgroundImage = originalString;
-                eventButton.style.backgroundSize = 'contain';
+                const imageUrl = currentLevel[key].photos?.[0] || defaultImage || 'unnamed.png';
+                eventButton.style.backgroundImage = `url("${imageUrl}")`;
                 eventButton.style.width = `${imageSize}px`;
                 eventButton.style.height = `${imageSize}px`;
                 eventButton.style.marginBottom = '45px';
                 eventButton.style.backgroundRepeat = 'no-repeat';
                 // title is the name of the folder
                 eventButton.setAttribute('title', key);
+
+            // 监测背景图片的加载
+            const img = new Image();
+            img.onload = img.onerror = checkAllImagesLoaded;
+            img.src = imageUrl;
+            imagesToLoad++;
 
                 // 添加文件夹图标元素
                 const folderIcon = document.createElement('img');
@@ -343,6 +380,11 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
 
+        if (imagesToLoad === 0) {
+            // 如果没有任何异步加载的图像，立即隐藏加载指示器
+            toggleLoadingIndicator(false);
+        }
+
         // 重置当前页面
         currentPage = 1;
         // 计算分页
@@ -354,6 +396,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // 为每张图片异步加载JSON信息
     async function fetchPhotoInfo(baseImageUrl) {
         const infoUrl = `${baseImageUrl}_info.json`;
+        toggleLoadingIndicator(true);
         try {
             const response = await fetch(infoUrl);
             if (!response.ok) {
@@ -363,6 +406,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         } catch (error) {
             console.error('Error fetching photo info:', error);
             return null;
+        } finally {
+            toggleLoadingIndicator(false);
         }
     }
 
@@ -473,7 +518,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             link.dataset.fancybox = "gallery1";
 
             // 提取图片名（假设URL结构为 .../eventName/photoName.jpg）
-            const photoName = photoUrl.split('/').pop().split('?')[0]; // 移除URL的查询参数（如果有）
+            const originalphotoName = photoUrl.split('/').pop().split('?')[0]; // 移除URL的查询参数（如果有）
+            const photoName = originalphotoName.includes('-') ? originalphotoName.split('-')[0] + '.jpg' : originalphotoName; // 截取"-"之前的部分并确保扩展名为.JPG
 
             // 创建并添加图片名的文本元素
             const nameElement = document.createElement('div');

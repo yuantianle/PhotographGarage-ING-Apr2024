@@ -418,17 +418,20 @@ body {
 
 #loading-indicator {
     display: block; /* 默认隐藏 */
+    visibility: hidden; /* 初始化为不可见 */
+    opacity: 0; /* 初始化为完全透明 */
     position: fixed;
     z-index: 9999;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1.1); /* 轻微放大，准备缩小的动画效果 */
     width: 30%;
     height: 30%;
-    background-image: url('pendulum.gif');
+    background-image: url('gifs/duck.gif');
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
+    transition: opacity 0.5s ease-out, visibility 0s 0.5s, transform 0.5s ease-out; /* 添加过渡效果 */
 }
 
 
