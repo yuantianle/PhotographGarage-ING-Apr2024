@@ -241,21 +241,21 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-function toggleLoadingIndicator(show) {
-    const loadingIndicator = document.getElementById('loading-indicator');
-    if (show) {
-        loadingIndicator.style.visibility = 'visible';
-        loadingIndicator.style.opacity = '1';
-        loadingIndicator.style.transform = 'translate(-50%, -50%) scale(1)';
-    } else {
-        loadingIndicator.style.opacity = '0';
-        loadingIndicator.style.transform = 'translate(-50%, -50%) scale(0.8)';
-        // 当动画完成后设置visibility为hidden
-        setTimeout(() => {
-            loadingIndicator.style.visibility = 'hidden';
-        }, 500); // 500ms是过渡时间
+    function toggleLoadingIndicator(show) {
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (show) {
+            loadingIndicator.style.visibility = 'visible';
+            loadingIndicator.style.opacity = '1';
+            loadingIndicator.style.transform = 'translate(-50%, -50%) scale(1)';
+        } else {
+            loadingIndicator.style.opacity = '0';
+            loadingIndicator.style.transform = 'translate(-50%, -50%) scale(0.6)';
+            // 当动画完成后设置visibility为hidden
+            setTimeout(() => {
+                loadingIndicator.style.visibility = 'hidden';
+            }, 500); // 500ms是过渡时间
+        }
     }
-}
 
     const data = await fetchData(); // 使用新的fetchData函数
     if (data && data.body) {
@@ -299,6 +299,17 @@ function toggleLoadingIndicator(show) {
 
     // 显示所有事件
     function showEvents(pathArray = ['public']) {
+        // 显示加载指示器
+        toggleLoadingIndicator(true);
+
+        function checkAllImagesLoaded() {
+            imagesLoaded++;
+            if (imagesLoaded === imagesToLoad) {
+                // 所有图片都已处理，隐藏加载指示器
+                toggleLoadingIndicator(false);
+            }
+        }
+
         const gallery = document.getElementById('photo-gallery');
 
         // 根据路径数组遍历到当前目录层级
@@ -320,19 +331,8 @@ function toggleLoadingIndicator(show) {
 
         updateBreadcrumb(pathArray); // 更新面包屑导航
 
-        // 显示加载指示器
-        toggleLoadingIndicator(true);
-
         let imagesToLoad = 0; // 跟踪需要加载的图片数量
         let imagesLoaded = 0; // 跟踪已加载的图片数量
-
-        function checkAllImagesLoaded() {
-            imagesLoaded++;
-            if (imagesLoaded === imagesToLoad) {
-                // 所有图片都已处理，隐藏加载指示器
-                toggleLoadingIndicator(false);
-            }
-        }
 
         Object.keys(currentLevel).forEach(key => {
             if ((typeof currentLevel[key] === 'object' && currentLevel[key] !== null) && key !== 'photos') {
@@ -343,7 +343,7 @@ function toggleLoadingIndicator(show) {
 
                 // 设置文件夹风格  
                 const defaultImage = pathArray[0] === 'public' ? defaultPublicEventImages[key] : null;// 检查是否为这个路径设置了默认图片，特别是对于位于public根目录下的文件夹
-                const imageUrl = currentLevel[key].photos?.[0] || defaultImage || 'unnamed.png';
+                const imageUrl = (currentLevel[key].photos?.[0] || defaultImage || 'unnamed.png').replace('public/', 'public_small/'); // 使用第一张图片作为文件夹封面
                 eventButton.style.backgroundImage = `url("${imageUrl}")`;
                 eventButton.style.width = `${imageSize}px`;
                 eventButton.style.height = `${imageSize}px`;
@@ -352,11 +352,11 @@ function toggleLoadingIndicator(show) {
                 // title is the name of the folder
                 eventButton.setAttribute('title', key);
 
-            // 监测背景图片的加载
-            const img = new Image();
-            img.onload = img.onerror = checkAllImagesLoaded;
-            img.src = imageUrl;
-            imagesToLoad++;
+                // 监测背景图片的加载
+                const img = new Image();
+                img.onload = img.onerror = checkAllImagesLoaded;
+                img.src = imageUrl;
+                imagesToLoad++;
 
                 // 添加文件夹图标元素
                 const folderIcon = document.createElement('img');

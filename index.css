@@ -221,6 +221,7 @@ body {
 }
 
 .event-button {
+    border: 5px solid #000; /* 黑色加粗边框 */
     width: 120px;
     height: 100px;
     background-size: cover;
@@ -228,7 +229,7 @@ body {
     display: inline-block;
     margin: 10px;
     border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
     cursor: pointer;
     position: relative;
     overflow: hidden;
@@ -239,7 +240,7 @@ body {
 .event-button:hover {
     transform: scale(1.05);
     /* 放大效果 */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
     /* 加深阴影 */
 }
 
