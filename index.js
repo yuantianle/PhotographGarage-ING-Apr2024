@@ -335,52 +335,69 @@ document.addEventListener("DOMContentLoaded", async function () {
         let imagesLoaded = 0; // 跟踪已加载的图片数量
 
         Object.keys(currentLevel)
-        .sort((a, b) => b.localeCompare(a)) // 按事件名降序排序
-        .forEach(key => {
-            if ((typeof currentLevel[key] === 'object' && currentLevel[key] !== null) && key !== 'photos') {
-                // 创建文件夹按钮
-                const eventButton = document.createElement('div');
-                eventButton.setAttribute('data-event', key); // 存储事件（目录）名称
-                eventButton.classList.add('event-button');
+            .sort((a, b) => b.localeCompare(a)) // 按事件名降序排序
+            .forEach(key => {
+                if ((typeof currentLevel[key] === 'object' && currentLevel[key] !== null) && key !== 'photos') {
+                    // 创建文件夹按钮
+                    const eventButton = document.createElement('div');
+                    eventButton.setAttribute('data-event', key); // 存储事件（目录）名称
+                    eventButton.classList.add('event-button');
 
-                // 设置文件夹风格
-                const defaultImage = pathArray[0] === 'public' ? defaultPublicEventImages[key] : null;// 检查是否为这个路径设置了默认图片，特别是对于位于public根目录下的文件夹
-                const imageUrl = (currentLevel[key].photos?.[0] || defaultImage || 'unnamed.png').replace('public/', 'public_small/'); // 使用第一张图片作为文件夹封面
-                eventButton.style.backgroundImage = `url("${imageUrl}")`;
-                eventButton.style.width = `${imageSize}px`;
-                eventButton.style.height = `${imageSize}px`;
-                eventButton.style.marginBottom = '45px';
-                eventButton.style.backgroundRepeat = 'no-repeat';
-                // title is the name of the folder
-                eventButton.setAttribute('title', key);
+                    // 设置文件夹风格
+                    const defaultImage = pathArray[0] === 'public' ? defaultPublicEventImages[key] : null;// 检查是否为这个路径设置了默认图片，特别是对于位于public根目录下的文件夹
 
-                // 监测背景图片的加载
-                const img = new Image();
-                img.onload = img.onerror = checkAllImagesLoaded;
-                img.src = imageUrl;
-                imagesToLoad++;
+                    const albumCover = albumCoverImages[key];
+                    // 从 currentLevel[key].photos 中模糊匹配的图片
+                    let resolvedImageCoverUrl = null;
+                    if (Array.isArray(currentLevel[key].photos)) {
+                        resolvedImageCoverUrl = currentLevel[key].photos.find(photo => {
+                            // 如果 albumCover 存在并且有通配符 '*'
+                            if (typeof albumCover === 'string' && albumCover.includes('*')) {
+                                const pattern = albumCover.replace("+","https://marcus-photograph-garage.s3.amazonaws.com/public").replace('*', key).split('*')[0]; // 替换并截取前缀
+                                return photo.startsWith(pattern); // 检查当前 photo 是否匹配该前缀
+                            }
+                            return false;
+                        });
+                    }
+                    
 
-                // 添加文件夹图标元素
-                const folderIcon = document.createElement('img');
-                defaultImage ? folderIcon.style.opacity = 0 : folderIcon.src = 'folder.png'; // 替换为你的文件夹图标路径
-                folderIcon.style.width = '50%'; // 根据需要调整大小
-                folderIcon.style.height = '50%';
-                folderIcon.style.position = 'absolute'; // 使用绝对定位
-                folderIcon.style.bottom = '5px'; // 调整位置
-                folderIcon.style.right = '5px';
-                folderIcon.style.pointerEvents = 'none'; // 允许点击事件穿透图标
-                eventButton.appendChild(folderIcon);
+                    const imageUrl = (defaultImage || resolvedImageCoverUrl || currentLevel[key].photos?.[0] || 'unnamed.png').replace('public/', 'public_small/'); // 使用第一张图片作为文件夹封面
+                    eventButton.style.backgroundImage = `url("${imageUrl}")`;
+                    eventButton.style.width = `${imageSize}px`;
+                    eventButton.style.height = `${imageSize}px`;
+                    eventButton.style.marginBottom = '45px';
+                    eventButton.style.backgroundRepeat = 'no-repeat';
+                    // title is the name of the folder
+                    eventButton.setAttribute('title', key);
 
-                // 添加目录名称
-                const eventName = document.createElement('div');
-                eventName.classList.add('event-name');
-                eventName.textContent = key;
-                eventButton.appendChild(eventName);
+                    // 监测背景图片的加载
+                    const img = new Image();
+                    img.onload = img.onerror = checkAllImagesLoaded;
+                    img.src = imageUrl;
+                    imagesToLoad++;
 
-                // 将完整的文件夹按钮添加到画廊中
-                gallery.appendChild(eventButton);
-            }
-        });
+                    // 添加文件夹图标元素
+                    const folderIcon = document.createElement('img');
+                    defaultImage ? folderIcon.style.opacity = 0 : folderIcon.src = 'folder2.png'; // 替换为你的文件夹图标路径
+                    folderIcon.style.filter = 'hue-rotate(200deg)'; // 让图标变蓝
+                    folderIcon.style.width = '30%'; // 根据需要调整大小
+                    folderIcon.style.height = '30%';
+                    folderIcon.style.position = 'absolute'; // 使用绝对定位
+                    folderIcon.style.bottom = '16%'; // 调整位置
+                    folderIcon.style.right = '1%';
+                    folderIcon.style.pointerEvents = 'none'; // 允许点击事件穿透图标
+                    eventButton.appendChild(folderIcon);
+
+                    // 添加目录名称
+                    const eventName = document.createElement('div');
+                    eventName.classList.add('event-name');
+                    eventName.textContent = key;
+                    eventButton.appendChild(eventName);
+
+                    // 将完整的文件夹按钮添加到画廊中
+                    gallery.appendChild(eventButton);
+                }
+            });
 
         if (imagesToLoad === 0) {
             // 如果没有任何异步加载的图像，立即隐藏加载指示器
