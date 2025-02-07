@@ -3,7 +3,7 @@ const SIZE_SMALL = 80;
 const SIZE_MEDIUM = 150;
 const SIZE_LARGE = 220;
 let imageSize = SIZE_MEDIUM; // 默认中图
-let paginationEnabled = true; // 默认启用分页
+let paginationEnabled = false; // 默认启用分页
 
 // 默认的公共事件图片的图片映射
 const defaultPublicEventImages = {
@@ -334,14 +334,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         let imagesToLoad = 0; // 跟踪需要加载的图片数量
         let imagesLoaded = 0; // 跟踪已加载的图片数量
 
-        Object.keys(currentLevel).forEach(key => {
+        Object.keys(currentLevel)
+        .sort((a, b) => b.localeCompare(a)) // 按事件名降序排序
+        .forEach(key => {
             if ((typeof currentLevel[key] === 'object' && currentLevel[key] !== null) && key !== 'photos') {
                 // 创建文件夹按钮
                 const eventButton = document.createElement('div');
                 eventButton.setAttribute('data-event', key); // 存储事件（目录）名称
                 eventButton.classList.add('event-button');
 
-                // 设置文件夹风格  
+                // 设置文件夹风格
                 const defaultImage = pathArray[0] === 'public' ? defaultPublicEventImages[key] : null;// 检查是否为这个路径设置了默认图片，特别是对于位于public根目录下的文件夹
                 const imageUrl = (currentLevel[key].photos?.[0] || defaultImage || 'unnamed.png').replace('public/', 'public_small/'); // 使用第一张图片作为文件夹封面
                 eventButton.style.backgroundImage = `url("${imageUrl}")`;
