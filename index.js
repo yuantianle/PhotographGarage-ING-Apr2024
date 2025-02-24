@@ -218,6 +218,20 @@ document.addEventListener("DOMContentLoaded", async function () {
     // ---- 从API获取数据 ----
     async function fetchData() {
         const apiUrl = 'https://7jaqpxmr1h.execute-api.us-west-2.amazonaws.com/prod';
+
+        const authToken = localStorage.getItem('authToken');
+        // 检查 token 是否已过期，如果过期则清除并返回 null
+        if (isTokenExpired(authToken)) {
+            console.warn('Token 已过期，需重新登录');
+            localStorage.removeItem('authToken');
+            return null;
+        }
+        // 检查是否已登录
+        if (!authToken) {
+            console.warn('用户未登录，无法加载数据');
+            return null; // 返回空，避免未登录时加载图片
+        }
+
         if (eventsCache[apiUrl]) {
             console.log('Using cached data');
             return eventsCache[apiUrl]; // 使用缓存的数据
@@ -225,11 +239,28 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         toggleLoadingIndicator(true);
         try {
-            const response = await fetch(apiUrl);
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + authToken
+                }
+            });
             if (!response.ok) {
+                // 如果返回 401，说明 token 无效或已过期，清除 token
+                if (response.status === 401) {
+                    console.warn('Token 无效或已过期，需重新登录');
+                    localStorage.removeItem('authToken');
+                }
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
+
+            // 如果返回的数据中包含 statusCode，说明验证失败; 成功的时候只会返回data
+            if (data.statusCode && response.status === 200) {
+                console.error("后端返回StatusCode(表明验证失败)，跳过图片加载:", data.body);
+                // 这里把错误信息展示给用户，而不是再去调用 processPhotos
+                return;
+            }
             eventsCache[apiUrl] = data; // 缓存数据
             return data;
         } catch (error) {
@@ -238,6 +269,76 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
         finally {
             toggleLoadingIndicator(false);
+        }
+    }
+
+    document.getElementById('login-btn').addEventListener('click', function () {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!username || !password) {
+            document.getElementById('error').innerText = '请输入用户名和密码';
+            return;
+        }
+
+        // 调用后端登录 API，替换为你在 API Gateway 上配置的 URL
+        fetch('https://x67i134qw3.execute-api.us-west-2.amazonaws.com/prod/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+            mode: 'cors' // 允许跨域
+        })
+            .then(response => response.json())
+            .then(async data => {
+                const parsedBody = JSON.parse(data.body); // 这里解析 body 里的 JSON
+                if (parsedBody.token) {
+                    localStorage.setItem('authToken', parsedBody.token);// 保存令牌（这里示例用 localStorage，生产环境建议使用 HttpOnly Cookie）
+                    
+                    // 登录成功后清除之前缓存的数据
+                    eventsCache = {};
+                    // 登录成功后隐藏登录框
+                    document.getElementById('login-box').style.display = 'none';
+                    document.getElementById('overlay').style.display = 'none';
+
+                    // 登录后加载相册
+                    const photosData = await fetchData();
+                    //get number
+                    if (photosData) {
+                        processPhotos(photosData);
+                        showEvents(['public']);
+                        showPhotos(['public']);
+                        updateBreadcrumb(['public']); // 初始路径
+                        updatePagination('public', 1); // 初始分页控件
+                    }
+                    else {
+                        console.error("后端返回错误:", photosData);
+                    }
+                } else {
+                    document.getElementById('error').innerText = data.error || '登录失败';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('error').innerText = '网络错误，请重试';
+            });
+    });
+
+    // 页面加载时检查登录状态
+    window.onload = function () {
+        const token = localStorage.getItem("authToken");
+        if (!token || isTokenExpired(token)) {
+            document.getElementById('login-box').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+    };
+
+    function isTokenExpired(token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1])); // 解析 JWT payload
+            const exp = payload.exp * 1000; // 过期时间（转换成毫秒）
+            return Date.now() > exp; // 过期返回 true
+        } catch (e) {
+            return true; // 解析失败视为无效 token
         }
     }
 
@@ -257,15 +358,15 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    const data = await fetchData(); // 使用新的fetchData函数
-    if (data && data.body) {
-        const photos = JSON.parse(data.body);
-        processPhotos(photos);
-        showEvents(['public']); // 初次加载页面时显示所有事件
-        showPhotos(['public']); // 初次加载页面时显示所有图片
-        updateBreadcrumb(['public']); // 初始路径
-        updatePagination('public', 1); // 初始分页控件
-    }
+    // const data = await fetchData(); // 使用新的fetchData函数
+    // if (data && data.body) {
+    //     const photos = JSON.parse(data.body);
+    //     processPhotos(photos);
+    //     showEvents(['public']); // 初次加载页面时显示所有事件
+    //     showPhotos(['public']); // 初次加载页面时显示所有图片
+    //     updateBreadcrumb(['public']); // 初始路径
+    //     updatePagination('public', 1); // 初始分页控件
+    // }
 
     function processPhotos(photos) {
         const imageExtensions = /\.(jpg|jpeg|png)$/i;
@@ -353,13 +454,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                         resolvedImageCoverUrl = currentLevel[key].photos.find(photo => {
                             // 如果 albumCover 存在并且有通配符 '*'
                             if (typeof albumCover === 'string' && albumCover.includes('*')) {
-                                const pattern = albumCover.replace("+","https://marcus-photograph-garage.s3.amazonaws.com/public").replace('*', key).split('*')[0]; // 替换并截取前缀
+                                const pattern = albumCover.replace("+", "https://marcus-photograph-garage.s3.amazonaws.com/public").replace('*', key).split('*')[0]; // 替换并截取前缀
                                 return photo.startsWith(pattern); // 检查当前 photo 是否匹配该前缀
                             }
                             return false;
                         });
                     }
-                    
+
 
                     const imageUrl = (defaultImage || resolvedImageCoverUrl || currentLevel[key].photos?.[0] || 'unnamed.png').replace('public/', 'public_small/'); // 使用第一张图片作为文件夹封面
                     eventButton.style.backgroundImage = `url("${imageUrl}")`;
@@ -669,5 +770,4 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
     }
-
 });
