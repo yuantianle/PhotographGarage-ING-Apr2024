@@ -273,7 +273,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const password = document.getElementById('password').value.trim();
 
         if (!username || !password) {
-            document.getElementById('error').innerText = '请输入用户名和密码';
+            document.getElementById('error').innerText = 'Please correct Account/Password input.';
             return;
         }
 
@@ -297,6 +297,8 @@ document.addEventListener("DOMContentLoaded", async function () {
                     document.getElementById('overlay').style.display = 'none';
                     // 显示 “Log out” 按钮
                     document.getElementById('logout-btn').style.display = 'inline-block';
+                    // 显示 toggle-container
+                    document.getElementById('toggle-container').style.display = 'block';
                     // 登录后加载相册
                     const photosData = await fetchData();
                     //get number
@@ -332,6 +334,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             document.getElementById('login-box').style.display = 'none';
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('logout-btn').style.display = 'inline-block';
+            document.getElementById('toggle-container').style.display = 'block';
             // 直接加载相册数据
             fetchData().then(data => {
                 if (data) {

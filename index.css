@@ -67,26 +67,34 @@ body {
     /* 适应深色主题 */
     font-size: 20px;
     /* 适当的字体大小 */
-    max-width: calc(100% - 95px); /* 根据 toggle-container 的实际宽度调整 */
-    overflow: hidden; /* 防止内容溢出 */
-    white-space: nowrap; /* 保持面包屑在一行显示 */
-    text-overflow: ellipsis; /* 超出部分显示省略号 */
+    max-width: calc(100% - 95px);
+    /* 根据 toggle-container 的实际宽度调整 */
+    overflow: hidden;
+    /* 防止内容溢出 */
+    white-space: nowrap;
+    /* 保持面包屑在一行显示 */
+    text-overflow: ellipsis;
+    /* 超出部分显示省略号 */
 }
 
 #breadcrumb a {
     color: #ffffff;
     transition: color 0.3s ease;
-    text-decoration: none; /* 去除下划线 */
+    text-decoration: none;
+    /* 去除下划线 */
 }
 
 #breadcrumb a:hover {
-    color: #ffd700; /* 鼠标悬停时的颜色 */
-    text-decoration: underline; /* 添加下划线增强交互性 */
+    color: #ffd700;
+    /* 鼠标悬停时的颜色 */
+    text-decoration: underline;
+    /* 添加下划线增强交互性 */
 }
 
 .active-breadcrumb {
     font-weight: bold;
-    color: rgb(136, 209, 255) !important; /* 高亮颜色 */
+    color: rgb(136, 209, 255) !important;
+    /* 高亮颜色 */
 }
 
 #photo-gallery {
@@ -124,45 +132,65 @@ body {
 /* 分页控件的容器样式 */
 #pagination {
     position: fixed;
-    bottom: 0; /* 放置在页面的底部 */
-    left: 50%; /* 水平居中 */
-    transform: translateX(-50%); /* 使用 transform 来确保完美居中 */
-    width: auto; /* 根据内容自动调整宽度 */
-    padding: 10px; /* 添加一些内边距以便于点击 */
+    bottom: 0;
+    /* 放置在页面的底部 */
+    left: 50%;
+    /* 水平居中 */
+    transform: translateX(-50%);
+    /* 使用 transform 来确保完美居中 */
+    width: auto;
+    /* 根据内容自动调整宽度 */
+    padding: 10px;
+    /* 添加一些内边距以便于点击 */
     text-align: center;
     margin: 20px 0;
     display: flex;
-    justify-content: center; /* 使分页按钮居中 */
-    flex-wrap: wrap; /* 允许分页按钮在必要时换行 */
-    border-top: 2px solid #008d88; /* 顶部边框，增加一些视觉区隔 */
-    z-index: 1000; /* 确保分页控件位于其他内容之上 */
+    justify-content: center;
+    /* 使分页按钮居中 */
+    flex-wrap: wrap;
+    /* 允许分页按钮在必要时换行 */
+    border-top: 2px solid #008d88;
+    /* 顶部边框，增加一些视觉区隔 */
+    z-index: 1000;
+    /* 确保分页控件位于其他内容之上 */
 }
 
 /* 分页按钮的基本样式 */
 #pagination button {
-    background-color: #ffffff; /* 白色背景 */
-    color: #006c5a; /* 蓝色文字 */
-    padding: 5px 10px; /* 按钮内边距 */
-    margin: 0 5px; /* 按钮间的间距 */
-    cursor: pointer; /* 鼠标悬停时的光标形状 */
+    background-color: #ffffff;
+    /* 白色背景 */
+    color: #006c5a;
+    /* 蓝色文字 */
+    padding: 5px 10px;
+    /* 按钮内边距 */
+    margin: 0 5px;
+    /* 按钮间的间距 */
+    cursor: pointer;
+    /* 鼠标悬停时的光标形状 */
     transition: all 0.3s ease-in-out;
-    transform: scale(0.9); /* 默认时稍微缩小 */
+    transform: scale(0.9);
+    /* 默认时稍微缩小 */
     border-radius: 30%;
     font-weight: bold;
 }
 
 /* 分页按钮在鼠标悬停时的样式 */
 #pagination button:hover {
-    background-color: #007bff; /* 按钮背景色变为蓝色 */
-    color: #f6ff00; /* 文字颜色变为白色 */
+    background-color: #007bff;
+    /* 按钮背景色变为蓝色 */
+    color: #f6ff00;
+    /* 文字颜色变为白色 */
 }
 
 /* 当前选中的分页按钮的样式 */
 #pagination button.active {
-    background-color: #00726a; /* 更深的蓝色背景表示选中状态 */
+    background-color: #00726a;
+    /* 更深的蓝色背景表示选中状态 */
     color: #280000;
-    border-color: #004085; /* 更深的边框颜色 */
-    transform: scale(1.1); /* 选中的按钮稍微放大 */
+    border-color: #004085;
+    /* 更深的边框颜色 */
+    transform: scale(1.1);
+    /* 选中的按钮稍微放大 */
 }
 
 .fancybox-protected {
@@ -177,12 +205,15 @@ body {
 }
 
 .caption-key {
-    color: #007bff; /* 示例颜色，键（属性名）使用蓝色 */
-    font-weight: bold; /* 加粗字体以增加区分度 */
+    color: #007bff;
+    /* 示例颜色，键（属性名）使用蓝色 */
+    font-weight: bold;
+    /* 加粗字体以增加区分度 */
 }
 
 .caption-value {
-    color: #ffffff9e; /* 示例颜色，值使用深灰色 */
+    color: #ffffff9e;
+    /* 示例颜色，值使用深灰色 */
 }
 
 /* 如果 caption 内部有额外的容器或段落，确保文本也是左对齐的 */
@@ -190,12 +221,13 @@ body {
     text-align: left;
 }
 
-.fancybox__slide.fancybox-caption{
+.fancybox__slide.fancybox-caption {
     padding: 10px;
 }
 
 .event-button {
-    border: 5px solid #000; /* 黑色加粗边框 */
+    border: 5px solid #000;
+    /* 黑色加粗边框 */
     width: 120px;
     height: 100px;
     background-size: cover;
@@ -244,18 +276,27 @@ body {
 
 .photo-container {
     text-align: left;
-    display: inline-block; /* 或flex, 根据需要调整 */
-    text-align: center; /* 使图片和文字居中 */
-    margin-bottom: 10px; /* 添加一些外边距 */
-    z-index: 1000; /* 确保图片位于其他内容之上 */
+    display: inline-block;
+    /* 或flex, 根据需要调整 */
+    text-align: center;
+    /* 使图片和文字居中 */
+    margin-bottom: 10px;
+    /* 添加一些外边距 */
+    z-index: 1000;
+    /* 确保图片位于其他内容之上 */
 }
 
 .photo-name {
-    color: #FFF; /* 根据你的网站风格调整颜色 */
-    margin-top: 5px; /* 文字与图片之间的间距 */
-    overflow: hidden; /* 隐藏超出部分 */
-    white-space: nowrap; /* 保持名字在一行显示 */
-    text-overflow: ellipsis; /* 超出部分显示省略号 */
+    color: #FFF;
+    /* 根据你的网站风格调整颜色 */
+    margin-top: 5px;
+    /* 文字与图片之间的间距 */
+    overflow: hidden;
+    /* 隐藏超出部分 */
+    white-space: nowrap;
+    /* 保持名字在一行显示 */
+    text-overflow: ellipsis;
+    /* 超出部分显示省略号 */
 }
 
 #toggle-container {
@@ -287,19 +328,29 @@ body {
     display: none;
     position: absolute;
     right: 0;
-    z-index: 2001; /* 确保这个容器在其他内容之上 */
+    z-index: 2001;
+    /* 确保这个容器在其他内容之上 */
 }
 
 .size-btn {
-    border: 1px solid #007bff; /* 边框 */
-    background-color: #007bff; /* 背景 */
-    color: #ffffff; /* 蓝色文本 */
-    padding: 10px ; /* 内边距 */
-    border-radius: 5px; /* 圆角 */
-    cursor: pointer; /* 手型光标 */
-    margin: 0 10px; /* 按钮之间的间隔 */
-    transition: all 0.3s ease; /* 平滑过渡效果 */
-    position: absolute; /* 绝对定位以形成圆形 */
+    border: 1px solid #007bff;
+    /* 边框 */
+    background-color: #007bff;
+    /* 背景 */
+    color: #ffffff;
+    /* 蓝色文本 */
+    padding: 10px;
+    /* 内边距 */
+    border-radius: 5px;
+    /* 圆角 */
+    cursor: pointer;
+    /* 手型光标 */
+    margin: 0 10px;
+    /* 按钮之间的间隔 */
+    transition: all 0.3s ease;
+    /* 平滑过渡效果 */
+    position: absolute;
+    /* 绝对定位以形成圆形 */
     display: block;
     width: 50px;
     margin: 5px 0;
@@ -315,15 +366,24 @@ body {
 }
 
 .page-btn {
-    border: 1px solid #007bff; /* 边框 */
-    background-color: #007bff; /* 背景 */
-    color: #ffffff; /* 蓝色文本 */
-    padding: 10px ; /* 内边距 */
-    border-radius: 5px; /* 圆角 */
-    cursor: pointer; /* 手型光标 */
-    margin: 0 10px; /* 按钮之间的间隔 */
-    transition: all 0.3s ease; /* 平滑过渡效果 */
-    position: absolute; /* 绝对定位以形成圆形 */
+    border: 1px solid #007bff;
+    /* 边框 */
+    background-color: #007bff;
+    /* 背景 */
+    color: #ffffff;
+    /* 蓝色文本 */
+    padding: 10px;
+    /* 内边距 */
+    border-radius: 5px;
+    /* 圆角 */
+    cursor: pointer;
+    /* 手型光标 */
+    margin: 0 10px;
+    /* 按钮之间的间隔 */
+    transition: all 0.3s ease;
+    /* 平滑过渡效果 */
+    position: absolute;
+    /* 绝对定位以形成圆形 */
     display: block;
     width: 50px;
     margin: 5px 0;
@@ -339,30 +399,44 @@ body {
 }
 
 .size-btn:hover {
-    background-color: #ffffff; /* 悬停时的背景颜色 */
-    color: #007bff; /* 悬停时的文本颜色 */
+    background-color: #ffffff;
+    /* 悬停时的背景颜色 */
+    color: #007bff;
+    /* 悬停时的文本颜色 */
 }
 
 .size-btn.active {
-    background-color: #ff6acb; /* 选中状态的背景颜色 */
-    color: #ffffff; /* 选中状态的文本颜色 */
-    border-color: #0056b3; /* 选中状态的边框颜色 */
-    transform: scale(1.1); /* 稍微放大 */
-    z-index: 2100; /* 确保按钮位于#size-controls和其他内容之上 */
+    background-color: #ff6acb;
+    /* 选中状态的背景颜色 */
+    color: #ffffff;
+    /* 选中状态的文本颜色 */
+    border-color: #0056b3;
+    /* 选中状态的边框颜色 */
+    transform: scale(1.1);
+    /* 稍微放大 */
+    z-index: 2100;
+    /* 确保按钮位于#size-controls和其他内容之上 */
 }
 
 
 .page-btn:hover {
-    background-color: #ffffff; /* 悬停时的背景颜色 */
-    color: #007bff; /* 悬停时的文本颜色 */
+    background-color: #ffffff;
+    /* 悬停时的背景颜色 */
+    color: #007bff;
+    /* 悬停时的文本颜色 */
 }
 
 .page-btn.active {
-    background-color: #ff6acb; /* 选中状态的背景颜色 */
-    color: #ffffff; /* 选中状态的文本颜色 */
-    border-color: #0056b3; /* 选中状态的边框颜色 */
-    transform: scale(1.1); /* 稍微放大 */
-    z-index: 2100; /* 确保按钮位于#size-controls和其他内容之上 */
+    background-color: #ff6acb;
+    /* 选中状态的背景颜色 */
+    color: #ffffff;
+    /* 选中状态的文本颜色 */
+    border-color: #0056b3;
+    /* 选中状态的边框颜色 */
+    transform: scale(1.1);
+    /* 稍微放大 */
+    z-index: 2100;
+    /* 确保按钮位于#size-controls和其他内容之上 */
 }
 
 
@@ -373,17 +447,21 @@ body {
 }
 
 #size-medium {
-    right: 52px; /* 调整这个值来改变按钮间距 */
-    bottom: -52px; /* 形成四分之一圆形 */
+    right: 52px;
+    /* 调整这个值来改变按钮间距 */
+    bottom: -52px;
+    /* 形成四分之一圆形 */
 }
 
 #size-small {
-    right: 104px; /* 根据实际需要调整 */
+    right: 104px;
+    /* 根据实际需要调整 */
     bottom: 0;
 }
 
 #pagination-toggle {
-    right: 0px; /* 根据实际需要调整 */
+    right: 0px;
+    /* 根据实际需要调整 */
     bottom: -170px;
 }
 
@@ -392,21 +470,26 @@ body {
 }
 
 #loading-indicator {
-    display: block; /* 默认隐藏 */
-    visibility: hidden; /* 初始化为不可见 */
-    opacity: 0; /* 初始化为完全透明 */
+    display: block;
+    /* 默认隐藏 */
+    visibility: hidden;
+    /* 初始化为不可见 */
+    opacity: 0;
+    /* 初始化为完全透明 */
     position: fixed;
     z-index: 9999;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(1.1); /* 轻微放大，准备缩小的动画效果 */
+    transform: translate(-50%, -50%) scale(1.1);
+    /* 轻微放大，准备缩小的动画效果 */
     width: 30%;
     height: 30%;
     background-image: url('gifs/duck.gif');
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-    transition: opacity 0.5s ease-out, visibility 0s 0.5s, transform 0.5s ease-out; /* 添加过渡效果 */
+    transition: opacity 0.5s ease-out, visibility 0s 0.5s, transform 0.5s ease-out;
+    /* 添加过渡效果 */
 }
 
 
@@ -416,23 +499,139 @@ body {
 
 ::-webkit-scrollbar {
     width: 5px;
-  }
-  
-  /* Track */
-  ::-webkit-scrollbar-track {
-    background: #000000; 
-  }
-   
-  /* Handle */
-  ::-webkit-scrollbar-thumb { 
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #000000;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
     border-radius: 10px;
     background: #23a470;
     box-shadow: inset 0 0 2px rgb(0, 0, 0);
-  }
-  
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
-    background:  rgb(218, 216, 216); 
-  }
+}
 
-  
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: rgb(218, 216, 216);
+}
+
+/*=====================登录框样式=========================*/
+.login-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    padding: 20px;
+    background: #a8d6ff43;
+    border-radius: 9px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    animation: bounceIn 0.7s ease-out;
+    border: 5px solid #000;
+}
+
+#login-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    /* 较小的内边距 */
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    /* 较小的圆角 */
+    font-size: 14px;
+    /* 较小的字体 */
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);
+}
+
+#login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.1);
+    }
+
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    40% {
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+
+    60% {
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    box-sizing: border-box;
+}
+
+#logout-btn {
+    position: fixed;
+    /* 固定定位，让按钮始终在屏幕固定位置 */
+    bottom: 20px;
+    /* 离底部 20px */
+    right: 20px;
+    /* 离右侧 20px */
+    padding: 10px 20px;
+    background: #dc3545;
+    /* 红色背景（Bootstrap 风格） */
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    /* 椭圆圆角 */
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    font-weight: bold;
+    /* 加粗字体 */
+    font-size: 14px;
+    text-transform: uppercase;
+    /* 全部大写 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 999;
+    /* 保证在最上层 */
+}
+
+#logout-btn:hover {
+    background: #c82333;
+    /* 鼠标悬停时更深的红色 */
+    transform: scale(1.05);
+    /* 微放大效果 */
+}
+
+#error {
+    color: red;
+}
+
+/* 遮罩层 */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+}
