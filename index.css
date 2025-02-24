@@ -622,7 +622,7 @@ input {
 }
 
 #error {
-    color: red;
+    color: rgb(255, 147, 147);
 }
 
 /* 遮罩层 */
