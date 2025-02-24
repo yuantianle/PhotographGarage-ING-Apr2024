@@ -48,19 +48,37 @@
             box-sizing: border-box;
         }
 
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #007bff;
+        #logout-btn {
+            position: fixed;
+            /* 固定定位，让按钮始终在屏幕固定位置 */
+            bottom: 20px;
+            /* 离底部 20px */
+            right: 20px;
+            /* 离右侧 20px */
+            padding: 10px 20px;
+            background: #dc3545;
+            /* 红色背景（Bootstrap 风格） */
             color: #fff;
             border: none;
-            border-radius: 4px;
+            border-radius: 20px;
+            /* 椭圆圆角 */
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.3s, transform 0.2s;
+            font-weight: bold;
+            /* 加粗字体 */
+            font-size: 14px;
+            text-transform: uppercase;
+            /* 全部大写 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            /* 保证在最上层 */
         }
 
-        button:hover {
-            background: #0056b3;
+        #logout-btn:hover {
+            background: #c82333;
+            /* 鼠标悬停时更深的红色 */
+            transform: scale(1.05);
+            /* 微放大效果 */
         }
 
         #error {
@@ -90,16 +108,12 @@
         <h2>登录</h2>
         <input type="text" id="username" placeholder="用户名">
         <input type="password" id="password" placeholder="密码">
-        <button id="login-btn">登录</button>
+        <button id="login-btn">Log in</button>
         <div id="error"></div>
     </div>
 
     <div id="loading-indicator" class="loading-hidden"></div>
     <div id="breadcrumb"></div>
-    <button onclick="logout()">登出</button>
-    <div id="back-button" style="margin-bottom: 20px; display: none;">
-        <button onclick="showEvents()">Back to Category</button>
-    </div>
     <div id="toggle-container" style="position: fixed; top: 20px; right: 20px;">
         <div id="size-controls-toggle"><i class="fas fa-cog"></i></div>
         <div id="size-controls" style="display: none;">
@@ -118,13 +132,15 @@
         </div>
     </div>
     <div id="photo-gallery"></div> <!-- 登陆前 隐藏图片加载 -->
-    <div id="pagination" style="margin-top: 20px;"></div> <!-- 分页控件 -->
+    <div id="pagination" style="margin-top: 20px; display: none;"></div> <!-- 分页控件 -->
+    <button id="logout-btn" style="display: none;">Log out</button>
 
     <script type="text/javascript">
         function logout() {
+            // // 移除 token
             localStorage.removeItem("authToken");
-            document.getElementById('login-box').style.display = 'block';
-            document.getElementById('overlay').style.display = 'block';
+            // 刷新页面以重置所有数据和状态
+            window.location.reload();
         }
     </script>
 

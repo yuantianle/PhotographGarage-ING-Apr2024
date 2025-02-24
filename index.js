@@ -40,23 +40,22 @@ function calculatePhotosPerPage() {
 
 document.addEventListener("DOMContentLoaded", async function () {
 
-    // 获取按钮元素
+    // 获取按钮元素和分页控件元素
     const paginationToggleButton = document.getElementById('pagination-toggle');
-
+    const paginationControls = document.getElementById('pagination');
     // 设置按钮初始状态
     if (paginationEnabled) {
         paginationToggleButton.classList.add('active');
+        paginationControls.style.display = 'block';
         paginationToggleButton.innerHTML = '<i class="fa fa-toggle-on"></i> Pagin';
     } else {
         paginationToggleButton.classList.remove('active');
+        paginationControls.style.display = 'none';
         paginationToggleButton.innerHTML = '<i class="fa fa-toggle-off"></i> Pagin';
     }
     // ---- 监听分页按钮 ----
     document.getElementById('pagination-toggle').addEventListener('click', function () {
         paginationEnabled = !paginationEnabled; // 切换分页状态
-
-        // 获取分页控件的元素
-        const paginationControls = document.getElementById('pagination');
 
         // 根据分页是否启用来显示或隐藏分页控件
         paginationControls.style.display = paginationEnabled ? 'block' : 'none';
@@ -72,10 +71,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             this.classList.remove('active');
             this.innerHTML = '<i class="fa fa-toggle-off"></i> Pagin'; // 更新为非激活状态的文本和图标
         }
-
-        // 阻止事件冒泡，避免触发上层元素的事件
-        event.stopPropagation();
-
     });
 
     // ---- 懒加载图片 ----
@@ -220,6 +215,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const apiUrl = 'https://7jaqpxmr1h.execute-api.us-west-2.amazonaws.com/prod';
 
         const authToken = localStorage.getItem('authToken');
+
         // 检查 token 是否已过期，如果过期则清除并返回 null
         if (isTokenExpired(authToken)) {
             console.warn('Token 已过期，需重新登录');
@@ -293,13 +289,14 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const parsedBody = JSON.parse(data.body); // 这里解析 body 里的 JSON
                 if (parsedBody.token) {
                     localStorage.setItem('authToken', parsedBody.token);// 保存令牌（这里示例用 localStorage，生产环境建议使用 HttpOnly Cookie）
-                    
+
                     // 登录成功后清除之前缓存的数据
                     eventsCache = {};
                     // 登录成功后隐藏登录框
                     document.getElementById('login-box').style.display = 'none';
                     document.getElementById('overlay').style.display = 'none';
-
+                    // 显示 “Log out” 按钮
+                    document.getElementById('logout-btn').style.display = 'inline-block';
                     // 登录后加载相册
                     const photosData = await fetchData();
                     //get number
@@ -329,6 +326,22 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (!token || isTokenExpired(token)) {
             document.getElementById('login-box').style.display = 'block';
             document.getElementById('overlay').style.display = 'block';
+            document.getElementById('logout-btn').style.display = 'none';
+        }
+        else {  // token 存在且有效，则不显示登录窗，直接加载内容，并显示 Log out 按钮
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('logout-btn').style.display = 'inline-block';
+            // 直接加载相册数据
+            fetchData().then(data => {
+                if (data) {
+                    processPhotos(data);
+                    showEvents(['public']);
+                    showPhotos(['public']);
+                    updateBreadcrumb(['public']);
+                    updatePagination('public', 1);
+                }
+            });
         }
     };
 
@@ -357,16 +370,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             }, 500); // 500ms是过渡时间
         }
     }
-
-    // const data = await fetchData(); // 使用新的fetchData函数
-    // if (data && data.body) {
-    //     const photos = JSON.parse(data.body);
-    //     processPhotos(photos);
-    //     showEvents(['public']); // 初次加载页面时显示所有事件
-    //     showPhotos(['public']); // 初次加载页面时显示所有图片
-    //     updateBreadcrumb(['public']); // 初始路径
-    //     updatePagination('public', 1); // 初始分页控件
-    // }
 
     function processPhotos(photos) {
         const imageExtensions = /\.(jpg|jpeg|png)$/i;
@@ -770,4 +773,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
     }
+
+    // 绑定点击事件
+    document.getElementById('logout-btn').addEventListener('click', logout);
 });
